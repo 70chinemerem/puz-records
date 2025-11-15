@@ -116,3 +116,39 @@
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Dashboard specific styles */
+.dashboard-nav-item.active {
+  @apply bg-blue-500/20 text-blue-400;
+}
+
+.dashboard-section {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.filter-tab.active {
+  @apply bg-blue-500/30 text-blue-300;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  @apply appearance-none w-12 h-6 bg-gray-700 rounded-full relative transition-colors;
+}
+
+input[type="checkbox"]:checked {
+  @apply bg-blue-500;
+}
+
+input[type="checkbox"]::before {
+  content: '';
+  @apply absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform;
+}
+
+input[type="checkbox"]:checked::before {
+  @apply transform translate-x-6;
+}
+
+/* Custom radio button styling */
+input[type="radio"] {
+  @apply w-4 h-4 text-blue-500 focus:ring-blue-500;
+}

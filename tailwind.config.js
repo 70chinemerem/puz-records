@@ -3,6 +3,9 @@ export default {
   content: [
     "./index.html",
     "./landing.html",
+    "./dashboard.html",
+    "./login.html",
+    "./register.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
