@@ -20,33 +20,49 @@
                     PUZ RECORDS
                 </a>
 
-                <!-- Auth Buttons -->
-                <div class="flex items-center gap-3">
-                    <a href="login.html"
-                        class="px-5 py-2 glass-effect rounded-full font-medium hover:bg-white/20 transition-all hover-lift text-sm">
-                        Sign In
-                    </a>
-                    <a href="register.html"
-                        class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all hover-lift text-sm">
-                        Get Started
-                    </a>
-                </div>
+
+                <a href="register.html"
+                    class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all hover-lift text-sm">
+                    Get Started
+                </a>
             </div>
+        </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
-        <!-- Animated Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-purple-900/40 to-pink-900/40"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]">
+        <!-- Video Background -->
+        <!-- 
+            To use your own video:
+            1. Replace the src URL below with your video file path (e.g., "videos/hero-background.mp4")
+            2. Recommended: Use MP4 format for best browser compatibility
+            3. Recommended video specs: 1920x1080 (Full HD), 30fps, compressed for web
+            4. You can add multiple <source> tags for different formats (WebM, MP4) for better compatibility
+        -->
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0"
+            style="min-width: 100%; min-height: 100%;"
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Crect fill='%23111827' width='1920' height='1080'/%3E%3C/svg%3E">
+            <!-- Replace this URL with your own video file -->
+            <source src="src/videos/video1.mp4" type="video/mp4">
+            <!-- Optional: Add WebM format for better compression -->
+            <!-- <source src="videos/hero-background.webm" type="video/webm"> -->
+            <!-- Fallback message if video doesn't load -->
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Video Overlay for better text readability -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/60 via-purple-900/60 to-pink-900/60 z-[1]"></div>
+        <div
+            class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.15),transparent_50%)] z-[1]">
         </div>
+        <div class="absolute inset-0 bg-black/30 z-[1]"></div>
 
         <!-- Floating Orbs -->
-        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"
+        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse z-[2]"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse z-[2]"
             style="animation-delay: 1s;"></div>
-        <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
+        <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse z-[2]"
             style="animation-delay: 2s;"></div>
 
         <!-- Content -->
@@ -108,9 +124,9 @@
         </div>
 
         <!-- Scroll Indicator -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
             <a href="#features" class="block">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                 </svg>
@@ -247,93 +263,158 @@
         </div>
     </section>
 
-    <!-- Signup Section -->
-    <section id="signup"
-        class="py-20 bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-pink-900/30 relative overflow-hidden">
-        <!-- Background Effects -->
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent_50%)]">
+    <!-- CTA Section -->
+    <section id="signup" class="py-24 relative overflow-hidden">
+        <!-- Animated Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-purple-900/40 to-pink-900/40"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.15),transparent_60%)]">
         </div>
 
+        <!-- Floating Particles Effect -->
+        <div class="absolute top-20 left-20 w-2 h-2 bg-blue-400 rounded-full opacity-60 animate-pulse"></div>
+        <div class="absolute top-40 right-32 w-3 h-3 bg-purple-400 rounded-full opacity-40 animate-pulse"
+            style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-32 left-1/4 w-2 h-2 bg-pink-400 rounded-full opacity-50 animate-pulse"
+            style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 right-20 w-3 h-3 bg-blue-300 rounded-full opacity-30 animate-pulse"
+            style="animation-delay: 0.5s;"></div>
+
         <div class="container mx-auto px-4 relative z-10">
-            <div class="max-w-3xl mx-auto text-center">
-                <!-- Headline -->
-                <h2 class="text-4xl md:text-6xl font-display font-bold mb-6 text-gradient">
-                    Ready to Start Your Journey?
-                </h2>
-                <p class="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-                    Join thousands of music lovers and get instant access to exclusive content, early releases, and
-                    more.
-                </p>
+            <div class="max-w-4xl mx-auto">
+                <!-- Main Content Grid -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Left Side - Content -->
+                    <div class="text-center lg:text-left">
+                        <div class="inline-block mb-6">
+                            <span
+                                class="px-4 py-2 glass-effect rounded-full text-sm font-medium text-blue-300 animate-fade-in-up">
+                                🎵 Join the Revolution
+                            </span>
+                        </div>
+                        <h2 class="text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 text-gradient animate-fade-in-up"
+                            style="animation-delay: 0.1s;">
+                            Your Sound,<br>
+                            <span class="block mt-2">Your Story</span>
+                        </h2>
+                        <p class="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed animate-fade-in-up"
+                            style="animation-delay: 0.2s;">
+                            Join <span class="text-blue-400 font-semibold">50,000+</span> music creators and listeners.
+                            Get exclusive access to unreleased tracks, artist collaborations, and behind-the-scenes
+                            content.
+                        </p>
 
-                <!-- Signup Form -->
-                <div class="glass-effect rounded-2xl p-8 md:p-12 max-w-2xl mx-auto">
-                    <form id="landing-signup-form" class="space-y-6" novalidate>
-                        <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-6 mb-8 animate-fade-in-up" style="animation-delay: 0.3s;">
                             <div>
-                                <label for="first-name" class="sr-only">First Name</label>
-                                <input type="text" id="first-name" name="firstName" placeholder="First Name" required
-                                    autocomplete="given-name"
-                                    class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400">
+                                <div class="text-3xl font-bold text-gradient mb-1">50K+</div>
+                                <div class="text-sm text-gray-400">Active Users</div>
                             </div>
                             <div>
-                                <label for="last-name" class="sr-only">Last Name</label>
-                                <input type="text" id="last-name" name="lastName" placeholder="Last Name" required
-                                    autocomplete="family-name"
-                                    class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400">
+                                <div class="text-3xl font-bold text-gradient mb-1">200+</div>
+                                <div class="text-sm text-gray-400">New Releases</div>
+                            </div>
+                            <div>
+                                <div class="text-3xl font-bold text-gradient mb-1">24/7</div>
+                                <div class="text-sm text-gray-400">Access</div>
                             </div>
                         </div>
-                        <div>
-                            <label for="signup-email" class="sr-only">Email Address</label>
-                            <input type="email" id="signup-email" name="email" placeholder="Enter your email address"
-                                required autocomplete="email"
-                                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400">
+
+                        <!-- Trust Badges -->
+                        <div class="flex flex-wrap items-center gap-4 justify-center lg:justify-start animate-fade-in-up"
+                            style="animation-delay: 0.4s;">
+                            <div class="flex items-center gap-2 px-3 py-1.5 glass-effect rounded-full text-xs">
+                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-gray-300">Free Forever</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1.5 glass-effect rounded-full text-xs">
+                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-gray-300">No Credit Card</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1.5 glass-effect rounded-full text-xs">
+                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-gray-300">Instant Access</span>
+                            </div>
                         </div>
-                        <button type="submit"
-                            class="w-full px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all hover-lift">
-                            Get Started Free
-                        </button>
-                        <p class="text-sm text-gray-400 text-center">
-                            By signing up, you agree to our <a href="#"
-                                class="text-blue-400 hover:text-blue-300 underline">Terms of Service</a> and <a href="#"
-                                class="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>. No credit card
-                            required.
-                        </p>
-                    </form>
+                    </div>
 
-                    <!-- Success Message -->
-                    <div id="signup-success"
-                        class="hidden mt-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-                        <p class="text-green-400 text-center">
-                            ✓ Success! Check your email to confirm your subscription.
-                        </p>
-                    </div>
-                </div>
+                    <!-- Right Side - Signup Form -->
+                    <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
+                        <div
+                            class="glass-effect rounded-3xl p-8 md:p-10 border border-white/10 backdrop-blur-xl shadow-2xl">
+                            <div class="mb-6">
+                                <h3 class="text-2xl font-display font-bold text-white mb-2">Start Creating Today</h3>
+                                <p class="text-sm text-gray-400">Join in seconds. No commitment required.</p>
+                            </div>
 
-                <!-- Trust Indicators -->
-                <div class="mt-12 flex flex-wrap justify-center items-center gap-8 text-gray-400 text-sm">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        Free Forever
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        No Credit Card
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        Cancel Anytime
+                            <form id="landing-signup-form" class="space-y-5" novalidate>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="first-name" class="sr-only">First Name</label>
+                                        <input type="text" id="first-name" name="firstName" placeholder="First Name"
+                                            required autocomplete="given-name"
+                                            class="w-full px-4 py-3.5 bg-gray-800/60 border border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-500 transition-all backdrop-blur-sm">
+                                    </div>
+                                    <div>
+                                        <label for="last-name" class="sr-only">Last Name</label>
+                                        <input type="text" id="last-name" name="lastName" placeholder="Last Name"
+                                            required autocomplete="family-name"
+                                            class="w-full px-4 py-3.5 bg-gray-800/60 border border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-500 transition-all backdrop-blur-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="signup-email" class="sr-only">Email Address</label>
+                                    <input type="email" id="signup-email" name="email"
+                                        placeholder="Enter your email address" required autocomplete="email"
+                                        class="w-full px-4 py-3.5 bg-gray-800/60 border border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-white placeholder-gray-500 transition-all backdrop-blur-sm">
+                                </div>
+                                <button type="submit"
+                                    class="w-full px-8 py-4 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 rounded-xl font-semibold text-lg text-white hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group">
+                                    <span
+                                        class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                    <span class="relative z-10 flex items-center justify-center gap-2">
+                                        <span>Get Started Free</span>
+                                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                                <p class="text-xs text-gray-500 text-center leading-relaxed">
+                                    By signing up, you agree to our <a href="#"
+                                        class="text-blue-400 hover:text-blue-300 underline transition-colors">Terms of
+                                        Service</a> and <a href="#"
+                                        class="text-blue-400 hover:text-blue-300 underline transition-colors">Privacy
+                                        Policy</a>
+                                </p>
+                            </form>
+
+                            <!-- Success Message -->
+                            <div id="signup-success"
+                                class="hidden mt-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl backdrop-blur-sm animate-fade-in">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p class="text-green-400 text-sm">Success! Check your email to confirm your
+                                        subscription.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -341,65 +422,143 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-12 border-t border-gray-800 bg-gray-900/50">
-        <div class="container mx-auto px-4">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <!-- Brand -->
-                <div>
-                    <h3 class="text-2xl font-display font-bold text-gradient mb-4">PUZ RECORDS</h3>
-                    <p class="text-gray-400 text-sm">
-                        Where music meets innovation. Discover the next generation of sound.
+    <footer class="py-16 border-t border-gray-800 bg-gray-900/50 relative overflow-hidden">
+        <!-- Background decoration -->
+        <div class="absolute inset-0 bg-gradient-to-t from-blue-900/5 via-transparent to-transparent"></div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <!-- Main Footer Content -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+                <!-- Brand Section -->
+                <div class="lg:col-span-1">
+                    <a href="#home" class="inline-block mb-4">
+                        <h3 class="text-2xl font-display font-bold text-gradient">PUZ RECORDS</h3>
+                    </a>
+                    <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                        Where music meets innovation. Discover the next generation of sound and connect with
+                        groundbreaking artists.
                     </p>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="index.html" class="hover:text-blue-400 transition-colors">Main Website</a></li>
-                        <li><a href="#features" class="hover:text-blue-400 transition-colors">Features</a></li>
-                        <li><a href="#signup" class="hover:text-blue-400 transition-colors">Sign Up</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Blog</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Help Center</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-colors">Contact</a></li>
-                    </ul>
-                </div>
-
-                <!-- Social -->
-                <div>
-                    <h4 class="font-semibold mb-4">Follow Us</h4>
-                    <div class="flex gap-4">
-                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Instagram">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <!-- Social Media Icons -->
+                    <div class="flex items-center gap-4">
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                            aria-label="Instagram">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path
                                     d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.06 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                             </svg>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Twitter">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                            aria-label="Twitter">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path
                                     d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                             </svg>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Spotify">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                            aria-label="YouTube">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                            aria-label="Spotify">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path
                                     d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.779 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.242 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z" />
                             </svg>
                         </a>
                     </div>
                 </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="font-semibold text-white mb-5 text-base">Quick Links</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="index.html"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200 inline-flex items-center gap-1">
+                                <span>Main Website</span>
+                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a></li>
+                        <li><a href="#features"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Features</a>
+                        </li>
+                        <li><a href="#testimonials"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Testimonials</a>
+                        </li>
+                        <li><a href="#signup"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Sign Up</a>
+                        </li>
+                        <li><a href="login.html"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Sign In</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Resources -->
+                <div>
+                    <h4 class="font-semibold text-white mb-5 text-base">Resources</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Help
+                                Center</a></li>
+                        <li><a href="#"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Documentation</a>
+                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">API
+                                Access</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Contact
+                                Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal & Newsletter -->
+                <div>
+                    <h4 class="font-semibold text-white mb-5 text-base">Legal</h4>
+                    <ul class="space-y-3 text-sm mb-6">
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Terms
+                                of Service</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Privacy
+                                Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Cookie
+                                Policy</a></li>
+                        <li><a href="#"
+                                class="text-gray-400 hover:text-blue-400 transition-colors duration-200">Licensing</a>
+                        </li>
+                    </ul>
+                    <!-- Newsletter Signup -->
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-white mb-3 text-sm">Stay Updated</h4>
+                        <p class="text-gray-400 text-xs mb-3">Get the latest news and releases</p>
+                        <form class="flex gap-2" onsubmit="event.preventDefault(); return false;">
+                            <input type="email" placeholder="Your email"
+                                class="flex-1 px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button type="submit"
+                                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-purple-500/50 transition-all">
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
-            <div class="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-                <p>&copy; 2024 Puz Records. All rights reserved.</p>
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p class="text-sm text-gray-400 text-center md:text-left">
+                        &copy; 2024 Puz Records. All rights reserved.
+                    </p>
+                    <div class="flex items-center gap-6 text-xs text-gray-500">
+                        <span>Made with ❤️ for music lovers</span>
+                        <span class="hidden md:inline">•</span>
+                        <a href="#" class="hover:text-blue-400 transition-colors">Sitemap</a>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>
