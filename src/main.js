@@ -3,9 +3,13 @@
  * Handles navigation, mobile menu, form submission, smooth scrolling, and all interactive features
  */
 
+// Import authentication functions
+import { isAuthenticated, getCurrentUser, logout } from './auth.js';
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize all functionality
+  initAuthNavigation();
   initMobileMenu();
   initSmoothScroll();
   initContactForm();
@@ -20,6 +24,74 @@ document.addEventListener('DOMContentLoaded', () => {
   initFilters();
   initToast();
 });
+
+/**
+ * Initialize authentication-based navigation updates
+ */
+function initAuthNavigation() {
+  const isAuth = isAuthenticated();
+  const user = getCurrentUser();
+  
+  // Get navigation elements
+  const authButtonsContainer = document.querySelector('.auth-buttons-container');
+  const userMenuContainer = document.querySelector('.user-menu-container');
+  const mobileAuthButtons = document.querySelector('.mobile-auth-buttons');
+  const mobileUserMenu = document.querySelector('.mobile-user-menu');
+  
+  if (isAuth && user) {
+    // Show user menu, hide auth buttons
+    if (authButtonsContainer) authButtonsContainer.classList.add('hidden');
+    if (userMenuContainer) {
+      userMenuContainer.classList.remove('hidden');
+      userMenuContainer.classList.add('flex');
+    }
+    if (mobileAuthButtons) mobileAuthButtons.classList.add('hidden');
+    if (mobileUserMenu) {
+      mobileUserMenu.classList.remove('hidden');
+      mobileUserMenu.classList.add('flex');
+    }
+    
+    // Update user info
+    const userNameElements = document.querySelectorAll('.user-name-display');
+    const userAvatarElements = document.querySelectorAll('.user-avatar');
+    
+    userNameElements.forEach(el => {
+      if (user.fullName) {
+        el.textContent = user.fullName.split(' ')[0]; // First name only
+      }
+    });
+    
+    userAvatarElements.forEach(el => {
+      if (user.fullName) {
+        const initials = user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        el.textContent = initials;
+      }
+    });
+  } else {
+    // Show auth buttons, hide user menu
+    if (authButtonsContainer) authButtonsContainer.classList.remove('hidden');
+    if (userMenuContainer) {
+      userMenuContainer.classList.add('hidden');
+      userMenuContainer.classList.remove('flex');
+    }
+    if (mobileAuthButtons) mobileAuthButtons.classList.remove('hidden');
+    if (mobileUserMenu) {
+      mobileUserMenu.classList.add('hidden');
+      mobileUserMenu.classList.remove('flex');
+    }
+  }
+  
+  // Handle logout
+  const logoutButtons = document.querySelectorAll('.logout-btn');
+  logoutButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('Are you sure you want to log out?')) {
+        logout();
+      }
+    });
+  });
+}
 
 /**
  * Initialize mobile menu toggle functionality
