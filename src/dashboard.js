@@ -7,17 +7,22 @@
 import { logout, getCurrentUser, isAuthenticated } from './auth.js';
 
 // Sample music data - In production, this would come from an API
+// Sample tracks with audio URLs
+// To add your own audio files:
+// 1. Place audio files in a folder (e.g., 'audio/' or 'assets/audio/')
+// 2. Update the 'audioUrl' property with the path to your audio file
+// 3. Supported formats: MP3, OGG, WAV, M4A
 const SAMPLE_TRACKS = [
-  { id: 1, title: 'Neon Dreams', artist: 'Nova Wave', album: 'Neon Dreams', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600' },
-  { id: 2, title: 'City Lights', artist: 'Echo Valley', album: 'Urban Nights', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600' },
-  { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600' },
-  { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600' },
-  { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600' },
-  { id: 6, title: 'Mountain Peak', artist: 'Nature Sounds', album: 'Natural World', duration: 230, genre: 'Ambient', color: 'from-green-500 to-emerald-600' },
-  { id: 7, title: 'Sunset Boulevard', artist: 'City Vibes', album: 'Urban Life', duration: 205, genre: 'Pop', color: 'from-orange-500 to-red-600' },
-  { id: 8, title: 'Midnight Jazz', artist: 'Smooth Operators', album: 'Jazz Collection', duration: 240, genre: 'Jazz', color: 'from-purple-500 to-indigo-600' },
-  { id: 9, title: 'Digital Dreams', artist: 'Tech Beats', album: 'Future Sounds', duration: 220, genre: 'Electronic', color: 'from-indigo-500 to-purple-600' },
-  { id: 10, title: 'Acoustic Morning', artist: 'Folk Tales', album: 'Morning Coffee', duration: 215, genre: 'Folk', color: 'from-yellow-500 to-orange-600' }
+  { id: 1, title: 'Neon Dreams', artist: 'Nova Wave', album: 'Neon Dreams', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'audio/neon-dreams.mp3' },
+  { id: 2, title: 'City Lights', artist: 'Echo Valley', album: 'Urban Nights', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'audio/city-lights.mp3' },
+  { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600', audioUrl: 'audio/after-hours.mp3' },
+  { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600', audioUrl: 'audio/electric-pulse.mp3' },
+  { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600', audioUrl: 'audio/ocean-breeze.mp3' },
+  { id: 6, title: 'Mountain Peak', artist: 'Nature Sounds', album: 'Natural World', duration: 230, genre: 'Ambient', color: 'from-green-500 to-emerald-600', audioUrl: 'audio/mountain-peak.mp3' },
+  { id: 7, title: 'Sunset Boulevard', artist: 'City Vibes', album: 'Urban Life', duration: 205, genre: 'Pop', color: 'from-orange-500 to-red-600', audioUrl: 'audio/sunset-boulevard.mp3' },
+  { id: 8, title: 'Midnight Jazz', artist: 'Smooth Operators', album: 'Jazz Collection', duration: 240, genre: 'Jazz', color: 'from-purple-500 to-indigo-600', audioUrl: 'audio/midnight-jazz.mp3' },
+  { id: 9, title: 'Digital Dreams', artist: 'Tech Beats', album: 'Future Sounds', duration: 220, genre: 'Electronic', color: 'from-indigo-500 to-purple-600', audioUrl: 'audio/digital-dreams.mp3' },
+  { id: 10, title: 'Acoustic Morning', artist: 'Folk Tales', album: 'Morning Coffee', duration: 215, genre: 'Folk', color: 'from-yellow-500 to-orange-600', audioUrl: 'audio/acoustic-morning.mp3' }
 ];
 
 // Data Management System
