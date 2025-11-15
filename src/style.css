@@ -11,7 +11,7 @@
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
     @apply bg-gray-900 text-gray-100 font-sans;
   }
@@ -22,11 +22,11 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500;
   }
-  
+
   .glass-effect {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }
-  
+
   .hover-lift {
     @apply transition-transform duration-300 hover:-translate-y-2;
   }
@@ -38,6 +38,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -48,6 +49,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -77,4 +79,3 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
-
