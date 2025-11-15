@@ -67,6 +67,30 @@ class DashboardData {
         storage: { used: 2.4, total: 10, unit: 'GB' }
       }));
     }
+    if (!localStorage.getItem(`dashboard_notifications_${this.userId}`)) {
+      // Initialize with some sample notifications
+      const sampleNotifications = [
+        {
+          id: Date.now() - 86400000,
+          type: 'system',
+          title: 'Welcome to Puz Records!',
+          message: 'Start exploring your music library and create your first playlist.',
+          read: false,
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          action: null
+        },
+        {
+          id: Date.now() - 3600000,
+          type: 'activity',
+          title: 'New music available',
+          message: 'Check out the latest tracks added to your library.',
+          read: false,
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          action: { type: 'navigate', target: '#library' }
+        }
+      ];
+      localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify(sampleNotifications));
+    }
   }
 
   getLibrary() {
@@ -106,6 +130,52 @@ class DashboardData {
     const current = this.getAccountType();
     const updated = { ...current, ...accountData };
     localStorage.setItem(`dashboard_accountType_${this.userId}`, JSON.stringify(updated));
+  }
+
+  getNotifications() {
+    return JSON.parse(localStorage.getItem(`dashboard_notifications_${this.userId}`) || '[]');
+  }
+
+  addNotification(notification) {
+    const notifications = this.getNotifications();
+    const newNotification = {
+      id: Date.now(),
+      type: notification.type || 'system',
+      title: notification.title || 'Notification',
+      message: notification.message || '',
+      read: false,
+      timestamp: new Date().toISOString(),
+      action: notification.action || null
+    };
+    notifications.unshift(newNotification);
+    // Keep only last 100 notifications
+    const updated = notifications.slice(0, 100);
+    localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify(updated));
+    return newNotification;
+  }
+
+  markAsRead(notificationId) {
+    const notifications = this.getNotifications();
+    const updated = notifications.map(n =>
+      n.id === notificationId ? { ...n, read: true } : n
+    );
+    localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify(updated));
+  }
+
+  markAllAsRead() {
+    const notifications = this.getNotifications();
+    const updated = notifications.map(n => ({ ...n, read: true }));
+    localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify(updated));
+  }
+
+  deleteNotification(notificationId) {
+    const notifications = this.getNotifications();
+    const updated = notifications.filter(n => n.id !== notificationId);
+    localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify(updated));
+  }
+
+  clearAllNotifications() {
+    localStorage.setItem(`dashboard_notifications_${this.userId}`, JSON.stringify([]));
   }
 
   addToFavorites(trackId) {
@@ -184,6 +254,12 @@ class DashboardData {
     }
   }
 
+  removeDownload(trackId) {
+    const downloads = this.getDownloads();
+    const updated = downloads.filter(id => id !== trackId);
+    localStorage.setItem(`dashboard_downloads_${this.userId}`, JSON.stringify(updated));
+  }
+
   updateSettings(settings) {
     const current = this.getSettings();
     const updated = { ...current, ...settings };
@@ -209,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initProfile();
   initMusicPlayer();
   initAccountType();
+  initNotificationSystem(); // Initialize notification system
   loadUserProfile();
   loadAccountType(); // Load account type on page load
   loadOverview();
@@ -216,7 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initFavorites();
   initRecent();
   initDownloads();
+  initNotifications();
+  initNotificationIcon(); // Initialize notification icon functionality
   initQuickActions();
+  updateNotificationBadge(); // Update badge on page load
 });
 
 /**
@@ -295,6 +375,7 @@ function initNavigation() {
         else if (targetSection === 'favorites') initFavorites();
         else if (targetSection === 'recent') initRecent();
         else if (targetSection === 'downloads') initDownloads();
+        else if (targetSection === 'notifications') loadNotifications();
         else if (targetSection === 'profile') loadProfile();
       }
     });
@@ -493,14 +574,14 @@ function renderPlaylistsSearchResults(results, query) {
     const card = document.createElement('div');
     card.className = 'glass-effect rounded-xl p-6 hover-lift group cursor-pointer';
     card.dataset.playlistId = playlist.id;
-    
-    const coverStyle = playlist.coverImage 
+
+    const coverStyle = playlist.coverImage
       ? `background-image: url(${playlist.coverImage}); background-size: cover; background-position: center;`
       : '';
-    const coverClass = playlist.coverImage 
-      ? '' 
+    const coverClass = playlist.coverImage
+      ? ''
       : `bg-gradient-to-br ${playlist.color || 'from-blue-500 to-purple-600'}`;
-    
+
     card.innerHTML = `
       <div class="flex items-center gap-4 mb-4">
         <div class="w-16 h-16 ${coverClass} rounded-lg flex items-center justify-center flex-shrink-0" style="${coverStyle}">
@@ -901,8 +982,21 @@ function showAddToPlaylistMenu(trackId) {
   menu.querySelectorAll('.select-playlist-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', () => {
       const playlistId = parseInt(btn.dataset.playlistId);
+      const playlist = playlists.find(p => p.id === playlistId);
       dataManager.addTrackToPlaylist(playlistId, trackId);
-      showNotification(`Added to "${playlists.find(p => p.id === playlistId).name}"`, 'success');
+      showNotification(`Added to "${playlist.name}"`, 'success');
+
+      // Add to notification center
+      if (track && playlist) {
+        dataManager.addNotification({
+          type: 'activity',
+          title: 'Track Added to Playlist',
+          message: `"${track.title}" has been added to "${playlist.name}".`,
+          action: { type: 'navigate', target: '#playlists' }
+        });
+        updateNotificationBadge();
+      }
+
       loadPlaylists();
       menu.remove();
     });
@@ -1094,24 +1188,40 @@ function initDownloads() {
   container.innerHTML = `
     <div class="space-y-3">
       ${downloadedTracks.map(track => `
-        <div class="flex items-center gap-4 p-3 hover:bg-white/5 rounded-lg">
-          <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg"></div>
+        <div class="flex items-center gap-4 p-3 hover:bg-white/5 rounded-lg group transition-all" data-track-id="${track.id}">
+          <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg flex-shrink-0"></div>
           <div class="flex-1 min-w-0">
             <h3 class="font-semibold truncate">${track.title}</h3>
             <p class="text-sm text-gray-400 truncate">${track.artist}</p>
           </div>
-          <button class="play-track-btn px-4 py-2 glass-effect rounded-lg hover:bg-white/20 transition-all text-sm" data-track-id="${track.id}">
-            Play
-          </button>
+          <div class="flex items-center gap-2">
+            <button class="play-track-btn px-4 py-2 glass-effect rounded-lg hover:bg-white/20 transition-all text-sm" data-track-id="${track.id}">
+              Play
+            </button>
+            <button class="delete-download-btn p-2 glass-effect rounded-lg hover:bg-red-500/20 text-red-400 transition-all opacity-0 group-hover:opacity-100 hover:scale-110" data-track-id="${track.id}" title="Remove from downloads">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       `).join('')}
     </div>
   `;
 
   container.querySelectorAll('.play-track-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const trackId = parseInt(btn.dataset.trackId);
       playTrack(trackId);
+    });
+  });
+
+  container.querySelectorAll('.delete-download-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trackId = parseInt(btn.dataset.trackId);
+      deleteDownload(trackId);
     });
   });
 }
@@ -1138,16 +1248,46 @@ function loadPlaylists() {
     const card = document.createElement('div');
     card.className = 'glass-effect rounded-xl p-6 hover-lift group cursor-pointer';
     card.dataset.playlistId = playlist.id;
+
+    const coverStyle = playlist.coverImage
+      ? `background-image: url(${playlist.coverImage}); background-size: cover; background-position: center;`
+      : '';
+    const coverClass = playlist.coverImage
+      ? ''
+      : `bg-gradient-to-br ${playlist.color || 'from-blue-500 to-purple-600'}`;
+
     card.innerHTML = `
       <div class="flex items-center gap-4 mb-4">
-        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
+        <div class="w-16 h-16 ${coverClass} rounded-lg flex items-center justify-center flex-shrink-0" style="${coverStyle}">
+          ${!playlist.coverImage ? `
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          ` : ''}
         </div>
-        <div class="flex-1">
-          <h3 class="font-semibold">${playlist.name}</h3>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="font-semibold truncate">${playlist.name}</h3>
+            ${playlist.isPublic ? `
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            ` : `
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            `}
+          </div>
+          ${playlist.description ? `<p class="text-xs text-gray-400 truncate mb-1">${playlist.description}</p>` : ''}
           <p class="text-sm text-gray-400">${trackCount} tracks • ${formatDuration(totalDuration)}</p>
+          ${playlist.tags && playlist.tags.length > 0 ? `
+            <div class="flex flex-wrap gap-1 mt-2">
+              ${playlist.tags.slice(0, 3).map(tag => `
+                <span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs">${tag}</span>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
       </div>
       <div class="flex items-center justify-between">
@@ -1369,7 +1509,7 @@ function showCreatePlaylistModal(initialTrackId = null, onSuccess = null) {
   // Close modal handlers
   const closeBtn = modal.querySelector('.close-create-playlist-modal');
   const cancelBtn = modal.querySelector('.cancel-create-playlist');
-  
+
   const closeModal = () => {
     modal.remove();
     if (onSuccess) onSuccess(null);
@@ -1406,11 +1546,11 @@ function showCreatePlaylistModal(initialTrackId = null, onSuccess = null) {
   });
 
   // Color selection
-  const colorOptions = modal.querySelectorAll('.color-option');
+  const colorOptionButtons = modal.querySelectorAll('.color-option');
   const selectedColorInput = modal.querySelector('#selected-color');
-  colorOptions.forEach(btn => {
+  colorOptionButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      colorOptions.forEach(b => b.classList.remove('ring-2', 'ring-blue-400'));
+      colorOptionButtons.forEach(b => b.classList.remove('ring-2', 'ring-blue-400'));
       btn.classList.add('ring-2', 'ring-blue-400');
       if (selectedColorInput) {
         selectedColorInput.value = btn.dataset.color;
@@ -1468,10 +1608,19 @@ function showCreatePlaylistModal(initialTrackId = null, onSuccess = null) {
 
       const playlist = dataManager.createPlaylist(playlistData);
       showNotification(`Playlist "${playlist.name}" created successfully!`, 'success');
-      
+
+      // Add to notification center
+      dataManager.addNotification({
+        type: 'activity',
+        title: 'Playlist Created',
+        message: `"${playlist.name}" has been created successfully.`,
+        action: { type: 'navigate', target: '#playlists' }
+      });
+      updateNotificationBadge();
+
       loadPlaylists();
       loadOverview();
-      
+
       const currentSection = document.querySelector('.dashboard-section:not(.hidden)');
       if (currentSection && currentSection.id === 'profile') {
         loadProfile();
@@ -1483,7 +1632,7 @@ function showCreatePlaylistModal(initialTrackId = null, onSuccess = null) {
   }
 
   document.body.appendChild(modal);
-  
+
   // Focus on name input
   const nameInput = modal.querySelector('#playlist-name');
   if (nameInput) {
@@ -1495,9 +1644,24 @@ function showCreatePlaylistModal(initialTrackId = null, onSuccess = null) {
  * Delete playlist
  */
 function deletePlaylist(playlistId) {
+  const playlists = dataManager.getPlaylists();
+  const playlist = playlists.find(p => p.id === playlistId);
+
   if (confirm('Are you sure you want to delete this playlist?')) {
     dataManager.deletePlaylist(playlistId);
     showNotification('Playlist deleted', 'success');
+
+    // Add to notification center
+    if (playlist) {
+      dataManager.addNotification({
+        type: 'activity',
+        title: 'Playlist Deleted',
+        message: `"${playlist.name}" has been deleted.`,
+        action: null
+      });
+      updateNotificationBadge();
+    }
+
     loadPlaylists();
     loadOverview();
     const currentSection = document.querySelector('.dashboard-section:not(.hidden)');
@@ -2462,13 +2626,37 @@ function loadAccountType() {
 function toggleFavorite(trackId) {
   const favorites = dataManager.getFavorites();
   const isFavorite = favorites.includes(trackId);
+  const library = dataManager.getLibrary();
+  const track = library.find(t => t.id === trackId);
 
   if (isFavorite) {
     dataManager.removeFromFavorites(trackId);
     showNotification('Removed from favorites', 'info');
+
+    // Add to notification center
+    if (track) {
+      dataManager.addNotification({
+        type: 'activity',
+        title: 'Removed from Favorites',
+        message: `"${track.title}" by ${track.artist} has been removed from your favorites.`,
+        action: { type: 'navigate', target: '#favorites' }
+      });
+      updateNotificationBadge();
+    }
   } else {
     dataManager.addToFavorites(trackId);
     showNotification('Added to favorites', 'success');
+
+    // Add to notification center
+    if (track) {
+      dataManager.addNotification({
+        type: 'activity',
+        title: 'Added to Favorites',
+        message: `"${track.title}" by ${track.artist} has been added to your favorites.`,
+        action: { type: 'navigate', target: '#favorites' }
+      });
+      updateNotificationBadge();
+    }
   }
 
   // Update UI in all relevant sections
@@ -2530,13 +2718,270 @@ function downloadTrack(trackId) {
     if (currentSection && currentSection.id === 'downloads') {
       setTimeout(() => {
         showNotification(`"${track.title}" downloaded successfully!`, 'success');
+
+        // Add to notification center
+        dataManager.addNotification({
+          type: 'activity',
+          title: 'Download Complete',
+          message: `"${track.title}" by ${track.artist} has been downloaded successfully.`,
+          action: { type: 'navigate', target: '#downloads' }
+        });
+        updateNotificationBadge();
+
         initDownloads();
       }, 500);
     } else {
       setTimeout(() => {
         showNotification(`"${track.title}" downloaded successfully!`, 'success');
+
+        // Add to notification center
+        dataManager.addNotification({
+          type: 'activity',
+          title: 'Download Complete',
+          message: `"${track.title}" by ${track.artist} has been downloaded successfully.`,
+          action: { type: 'navigate', target: '#downloads' }
+        });
+        updateNotificationBadge();
       }, 500);
     }
+  }
+}
+
+/**
+ * Delete download with sophisticated modal and undo functionality
+ */
+let deletedDownloadData = null;
+let undoTimeout = null;
+
+function deleteDownload(trackId) {
+  const library = dataManager.getLibrary();
+  const track = library.find(t => t.id === trackId);
+
+  if (!track) return;
+
+  // Store deleted data for undo
+  deletedDownloadData = {
+    trackId: trackId,
+    track: { ...track },
+    timestamp: Date.now()
+  };
+
+  // Create sophisticated delete modal
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+  modal.innerHTML = `
+    <div class="glass-effect rounded-xl p-6 max-w-md w-full transform scale-95 opacity-0 transition-all duration-300">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-16 h-16 bg-gradient-to-br ${track.color} rounded-xl flex items-center justify-center flex-shrink-0">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-xl font-display font-bold mb-1 truncate">${track.title}</h3>
+          <p class="text-sm text-gray-400 truncate">${track.artist}</p>
+        </div>
+        <button class="close-delete-modal p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="mb-6">
+        <div class="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-4">
+          <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-red-300 mb-1">Remove from Downloads?</p>
+            <p class="text-sm text-gray-400">This will remove the track from your downloaded music. You can download it again anytime.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="cancel-delete-download flex-1 px-6 py-3 glass-effect rounded-lg font-semibold hover:bg-white/20 transition-all">
+          Cancel
+        </button>
+        <button class="confirm-delete-download flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all">
+          Remove
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Animate modal in
+  requestAnimationFrame(() => {
+    const modalContent = modal.querySelector('.glass-effect');
+    modalContent.classList.remove('scale-95', 'opacity-0');
+    modalContent.classList.add('scale-100', 'opacity-100');
+  });
+
+  // Close handlers
+  const closeBtn = modal.querySelector('.close-delete-modal');
+  const cancelBtn = modal.querySelector('.cancel-delete-download');
+
+  const closeModal = () => {
+    const modalContent = modal.querySelector('.glass-effect');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.remove(), 300);
+    deletedDownloadData = null;
+  };
+
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Confirm delete
+  const confirmBtn = modal.querySelector('.confirm-delete-download');
+  confirmBtn?.addEventListener('click', () => {
+    // Animate deletion
+    const modalContent = modal.querySelector('.glass-effect');
+    modalContent.classList.add('scale-95', 'opacity-0');
+
+    setTimeout(() => {
+      modal.remove();
+
+      // Perform deletion
+      dataManager.removeDownload(trackId);
+
+      // Show success notification with undo option
+      showDeleteNotificationWithUndo(track);
+
+      // Add to notification center
+      dataManager.addNotification({
+        type: 'activity',
+        title: 'Download Removed',
+        message: `"${track.title}" by ${track.artist} has been removed from your downloads.`,
+        action: null
+      });
+      updateNotificationBadge();
+
+      // Reload downloads section with animation
+      animateDownloadRemoval(trackId);
+    }, 300);
+  });
+
+  document.body.appendChild(modal);
+}
+
+/**
+ * Show delete notification with undo option
+ */
+function showDeleteNotificationWithUndo(track) {
+  // Show notification and get its ID
+  const notificationId = showNotification(
+    `"${track.title}" removed from downloads`,
+    'success',
+    6000 // Longer duration for undo
+  );
+
+  // Create undo button in notification after a short delay
+  setTimeout(() => {
+    // Find notification by ID
+    const notification = document.querySelector(`[data-notification-id="${notificationId}"]`);
+
+    if (notification && deletedDownloadData) {
+      const content = notification.querySelector('.flex-1');
+      if (content) {
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'ml-3 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium transition-all border border-white/20';
+        undoBtn.textContent = 'Undo';
+        undoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          undoDownloadDeletion();
+          if (notification.parentElement) {
+            notification.remove();
+          }
+        });
+        content.appendChild(undoBtn);
+      }
+    }
+  }, 200);
+
+  // Auto-remove undo data after timeout
+  if (undoTimeout) clearTimeout(undoTimeout);
+  undoTimeout = setTimeout(() => {
+    deletedDownloadData = null;
+  }, 6000);
+}
+
+/**
+ * Undo download deletion
+ */
+function undoDownloadDeletion() {
+  if (!deletedDownloadData) return;
+
+  const { trackId } = deletedDownloadData;
+
+  // Restore download
+  dataManager.downloadTrack(trackId);
+
+  // Show success notification
+  showNotification('Download restored', 'success');
+
+  // Add to notification center
+  dataManager.addNotification({
+    type: 'activity',
+    title: 'Download Restored',
+    message: `"${deletedDownloadData.track.title}" has been restored to your downloads.`,
+    action: null
+  });
+  updateNotificationBadge();
+
+  // Reload downloads section
+  initDownloads();
+
+  // Clear undo data
+  deletedDownloadData = null;
+  if (undoTimeout) {
+    clearTimeout(undoTimeout);
+    undoTimeout = null;
+  }
+}
+
+/**
+ * Animate download removal
+ */
+function animateDownloadRemoval(trackId) {
+  const container = document.querySelector('#downloads .glass-effect');
+  if (!container) {
+    initDownloads();
+    return;
+  }
+
+  const trackElement = container.querySelector(`[data-track-id="${trackId}"]`)?.closest('.group');
+  if (trackElement) {
+    // Animate out
+    trackElement.style.transition = 'all 0.3s ease-out';
+    trackElement.style.opacity = '0';
+    trackElement.style.transform = 'translateX(-20px)';
+    trackElement.style.maxHeight = trackElement.offsetHeight + 'px';
+
+    setTimeout(() => {
+      trackElement.style.maxHeight = '0';
+      trackElement.style.marginBottom = '0';
+      trackElement.style.paddingTop = '0';
+      trackElement.style.paddingBottom = '0';
+
+      setTimeout(() => {
+        // Reload if there are still downloads, otherwise show empty state
+        const downloads = dataManager.getDownloads();
+        if (downloads.length > 0) {
+          initDownloads();
+        } else {
+          container.innerHTML = '<p class="text-gray-400 text-center py-8">No downloads yet. Start downloading your favorite tracks!</p>';
+        }
+      }, 300);
+    }, 300);
+  } else {
+    initDownloads();
   }
 }
 
@@ -2624,33 +3069,602 @@ function saveProfileSettings() {
 }
 
 /**
- * Show notification toast
+ * Notification system with enhanced features
  */
-function showNotification(message, type = 'info') {
-  const toast = document.createElement('div');
-  const colors = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-yellow-500'
+const notificationQueue = [];
+let notificationContainer = null;
+
+/**
+ * Initialize notification container
+ */
+function initNotificationSystem() {
+  if (!notificationContainer) {
+    notificationContainer = document.createElement('div');
+    notificationContainer.id = 'notification-container';
+    notificationContainer.className = 'fixed top-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none';
+    document.body.appendChild(notificationContainer);
+  }
+}
+
+/**
+ * Show notification toast with enhanced features
+ */
+function showNotification(message, type = 'info', duration = 4000) {
+  // Initialize notification system if not already done
+  initNotificationSystem();
+
+  const notificationId = Date.now();
+  const icons = {
+    success: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `,
+    error: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `,
+    info: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `,
+    warning: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+    `
   };
 
-  toast.className = `fixed top-20 right-4 ${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-up flex items-center gap-2`;
+  const colors = {
+    success: {
+      bg: 'bg-green-500/20',
+      border: 'border-green-500/50',
+      text: 'text-green-300',
+      icon: 'text-green-400',
+      progress: 'bg-green-400'
+    },
+    error: {
+      bg: 'bg-red-500/20',
+      border: 'border-red-500/50',
+      text: 'text-red-300',
+      icon: 'text-red-400',
+      progress: 'bg-red-400'
+    },
+    info: {
+      bg: 'bg-blue-500/20',
+      border: 'border-blue-500/50',
+      text: 'text-blue-300',
+      icon: 'text-blue-400',
+      progress: 'bg-blue-400'
+    },
+    warning: {
+      bg: 'bg-yellow-500/20',
+      border: 'border-yellow-500/50',
+      text: 'text-yellow-300',
+      icon: 'text-yellow-400',
+      progress: 'bg-yellow-400'
+    }
+  };
+
+  const colorScheme = colors[type] || colors.info;
+  const icon = icons[type] || icons.info;
+
+  const toast = document.createElement('div');
+  toast.dataset.notificationId = notificationId;
+  toast.className = `notification-toast glass-effect ${colorScheme.border} border-l-4 rounded-xl shadow-2xl pointer-events-auto min-w-[320px] max-w-[420px] transform translate-x-full opacity-0 transition-all duration-300 ease-out`;
+
   toast.innerHTML = `
-    <span>${message}</span>
-    <button class="ml-2 hover:opacity-80" onclick="this.parentElement.remove()">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
+    <div class="p-4">
+      <div class="flex items-start gap-3">
+        <!-- Icon -->
+        <div class="flex-shrink-0 ${colorScheme.icon} mt-0.5">
+          ${icon}
+        </div>
+        
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <p class="${colorScheme.text} font-medium text-sm leading-relaxed">${message}</p>
+        </div>
+        
+        <!-- Close Button -->
+        <button class="notification-close-btn flex-shrink-0 ${colorScheme.text} hover:opacity-70 transition-opacity p-1 rounded" aria-label="Close notification">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div class="mt-3 h-0.5 bg-gray-700/50 rounded-full overflow-hidden">
+        <div class="notification-progress h-full ${colorScheme.progress} rounded-full transition-all ease-linear" style="width: 100%"></div>
+      </div>
+    </div>
   `;
 
-  document.body.appendChild(toast);
+  // Add to container
+  notificationContainer.appendChild(toast);
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-x-full', 'opacity-0');
+      toast.classList.add('translate-x-0', 'opacity-100');
+    });
+  });
+
+  // Start progress bar animation
+  const progressBar = toast.querySelector('.notification-progress');
+  if (progressBar) {
+    progressBar.style.transition = `width ${duration}ms linear`;
+    progressBar.style.width = '0%';
+  }
+
+  // Auto-dismiss
+  const autoDismiss = setTimeout(() => {
+    dismissNotification(toast);
+  }, duration);
+
+  // Close button handler
+  const closeBtn = toast.querySelector('.notification-close-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      clearTimeout(autoDismiss);
+      dismissNotification(toast);
+    });
+  }
+
+  // Add to queue for tracking
+  notificationQueue.push({
+    id: notificationId,
+    element: toast,
+    timeout: autoDismiss
+  });
+
+  return notificationId;
+}
+
+/**
+ * Dismiss notification with animation
+ */
+function dismissNotification(toast) {
+  if (!toast || !toast.parentElement) return;
+
+  toast.classList.remove('translate-x-0', 'opacity-100');
+  toast.classList.add('translate-x-full', 'opacity-0');
 
   setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+    if (toast.parentElement) {
+      toast.remove();
+    }
+    // Remove from queue
+    const notificationId = parseInt(toast.dataset.notificationId);
+    const index = notificationQueue.findIndex(n => n.id === notificationId);
+    if (index > -1) {
+      notificationQueue.splice(index, 1);
+    }
+  }, 300);
+}
+
+/**
+ * Clear all notifications
+ */
+function clearAllNotifications() {
+  notificationQueue.forEach(notification => {
+    if (notification.timeout) {
+      clearTimeout(notification.timeout);
+    }
+    dismissNotification(notification.element);
+  });
+  notificationQueue.length = 0;
+}
+
+/**
+ * Initialize notifications section
+ */
+function initNotifications() {
+  const markAllReadBtn = document.getElementById('mark-all-read-btn');
+  const clearAllBtn = document.getElementById('clear-all-notifications-btn');
+  const filterBtns = document.querySelectorAll('.notification-filter-btn');
+
+  if (markAllReadBtn) {
+    markAllReadBtn.addEventListener('click', () => {
+      dataManager.markAllAsRead();
+      loadNotifications();
+      updateNotificationBadge();
+    });
+  }
+
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all notifications?')) {
+        dataManager.clearAllNotifications();
+        loadNotifications();
+        updateNotificationBadge();
+      }
+    });
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active', 'bg-white/10'));
+      btn.classList.add('active', 'bg-white/10');
+      const filter = btn.dataset.filter;
+      loadNotifications(filter);
+    });
+  });
+}
+
+/**
+ * Load notifications
+ */
+let currentNotificationFilter = 'all';
+function loadNotifications(filter = 'all') {
+  currentNotificationFilter = filter;
+  const container = document.getElementById('notifications-container');
+  const emptyState = document.getElementById('notifications-empty');
+
+  if (!container) return;
+
+  let notifications = dataManager.getNotifications();
+
+  // Apply filter
+  if (filter === 'unread') {
+    notifications = notifications.filter(n => !n.read);
+  } else if (filter === 'read') {
+    notifications = notifications.filter(n => n.read);
+  } else if (filter === 'system') {
+    notifications = notifications.filter(n => n.type === 'system');
+  } else if (filter === 'activity') {
+    notifications = notifications.filter(n => n.type === 'activity');
+  }
+
+  // Sort by timestamp (newest first)
+  notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  container.innerHTML = '';
+
+  if (notifications.length === 0) {
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add('hidden');
+
+  notifications.forEach(notification => {
+    const notificationEl = createNotificationElement(notification);
+    container.appendChild(notificationEl);
+  });
+}
+
+/**
+ * Create notification element
+ */
+function createNotificationElement(notification) {
+  const div = document.createElement('div');
+  div.className = `glass-effect rounded-xl p-4 hover-lift transition-all ${!notification.read ? 'border-l-4 border-blue-500' : ''}`;
+
+  const icons = {
+    system: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+    `,
+    activity: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+      </svg>
+    `,
+    success: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `,
+    error: `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `
+  };
+
+  const icon = icons[notification.type] || icons.system;
+  const timeAgo = formatNotificationTime(notification.timestamp);
+
+  div.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
+        ${icon}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-sm ${!notification.read ? 'text-white' : 'text-gray-300'}">${notification.title}</h3>
+            <p class="text-sm text-gray-400 mt-1">${notification.message}</p>
+            <p class="text-xs text-gray-500 mt-2">${timeAgo}</p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${!notification.read ? `
+              <button class="mark-read-btn p-1 hover:bg-white/10 rounded transition-colors" data-notification-id="${notification.id}" title="Mark as read">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+            ` : ''}
+            <button class="delete-notification-btn p-1 hover:bg-red-500/20 rounded transition-colors text-red-400" data-notification-id="${notification.id}" title="Delete">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        ${notification.action ? `
+          <button class="notification-action-btn mt-3 px-4 py-2 glass-effect rounded-lg text-sm hover:bg-white/20 transition-all" data-action='${JSON.stringify(notification.action)}'>
+            ${notification.action.type === 'navigate' ? 'View' : 'Action'}
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  // Mark as read button
+  const markReadBtn = div.querySelector('.mark-read-btn');
+  if (markReadBtn) {
+    markReadBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dataManager.markAsRead(notification.id);
+      loadNotifications(currentNotificationFilter);
+      updateNotificationBadge();
+    });
+  }
+
+  // Delete button
+  const deleteBtn = div.querySelector('.delete-notification-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dataManager.deleteNotification(notification.id);
+      loadNotifications(currentNotificationFilter);
+      updateNotificationBadge();
+    });
+  }
+
+  // Action button
+  const actionBtn = div.querySelector('.notification-action-btn');
+  if (actionBtn && notification.action) {
+    actionBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (notification.action.type === 'navigate') {
+        const navItem = document.querySelector(`[data-section="${notification.action.target.replace('#', '')}"]`);
+        if (navItem) navItem.click();
+      }
+    });
+  }
+
+  // Click to mark as read
+  if (!notification.read) {
+    div.addEventListener('click', () => {
+      dataManager.markAsRead(notification.id);
+      loadNotifications(currentNotificationFilter);
+      updateNotificationBadge();
+    });
+  }
+
+  return div;
+}
+
+/**
+ * Format notification time
+ */
+function formatNotificationTime(timestamp) {
+  const now = new Date();
+  const date = new Date(timestamp);
+  const diff = now - date;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return date.toLocaleDateString();
+}
+
+/**
+ * Update notification badge in sidebar and top bar
+ */
+function updateNotificationBadge() {
+  const sidebarBadge = document.getElementById('notification-badge');
+  const topBadge = document.getElementById('top-notification-badge');
+
+  const notifications = dataManager.getNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Update sidebar badge
+  if (sidebarBadge) {
+    if (unreadCount > 0) {
+      sidebarBadge.classList.remove('hidden');
+      sidebarBadge.textContent = unreadCount > 9 ? '9+' : unreadCount.toString();
+      sidebarBadge.className = sidebarBadge.className.replace('w-2 h-2', 'min-w-[18px] h-[18px] px-1 text-xs flex items-center justify-center');
+    } else {
+      sidebarBadge.classList.add('hidden');
+    }
+  }
+
+  // Update top bar badge
+  if (topBadge) {
+    if (unreadCount > 0) {
+      topBadge.classList.remove('hidden');
+      topBadge.classList.add('flex');
+      topBadge.textContent = unreadCount > 9 ? '9+' : unreadCount.toString();
+    } else {
+      topBadge.classList.add('hidden');
+      topBadge.classList.remove('flex');
+    }
+  }
+}
+
+/**
+ * Initialize notification icon functionality
+ */
+function initNotificationIcon() {
+  const iconBtn = document.getElementById('notification-icon-btn');
+  const dropdown = document.getElementById('notification-dropdown');
+  const viewAllLink = document.getElementById('view-all-notifications');
+
+  if (!iconBtn || !dropdown) return;
+
+  // Toggle dropdown on click
+  iconBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = dropdown.classList.contains('hidden');
+
+    if (isHidden) {
+      dropdown.classList.remove('hidden');
+      dropdown.classList.add('flex', 'flex-col');
+      loadNotificationDropdown();
+    } else {
+      dropdown.classList.add('hidden');
+      dropdown.classList.remove('flex', 'flex-col');
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target) && !iconBtn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+      dropdown.classList.remove('flex', 'flex-col');
+    }
+  });
+
+  // View all notifications link
+  if (viewAllLink) {
+    viewAllLink.addEventListener('click', () => {
+      dropdown.classList.add('hidden');
+      dropdown.classList.remove('flex', 'flex-col');
+      const navItem = document.querySelector('[data-section="notifications"]');
+      if (navItem) {
+        navItem.click();
+      }
+    });
+  }
+}
+
+/**
+ * Load notifications in dropdown
+ */
+function loadNotificationDropdown() {
+  const container = document.getElementById('notification-dropdown-list');
+  const emptyState = document.getElementById('notification-dropdown-empty');
+
+  if (!container) return;
+
+  const notifications = dataManager.getNotifications();
+  const recentNotifications = notifications.slice(0, 5); // Show only 5 most recent
+
+  container.innerHTML = '';
+
+  if (recentNotifications.length === 0) {
+    if (emptyState) emptyState.classList.remove('hidden');
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add('hidden');
+
+  recentNotifications.forEach(notification => {
+    const notificationEl = createDropdownNotificationElement(notification);
+    container.appendChild(notificationEl);
+  });
+}
+
+/**
+ * Create notification element for dropdown
+ */
+function createDropdownNotificationElement(notification) {
+  const div = document.createElement('div');
+  div.className = `p-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer ${!notification.read ? 'bg-blue-500/5' : ''}`;
+
+  const icons = {
+    system: `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+    `,
+    activity: `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+      </svg>
+    `,
+    success: `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `,
+    error: `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    `
+  };
+
+  const icon = icons[notification.type] || icons.system;
+  const timeAgo = formatNotificationTime(notification.timestamp);
+
+  div.innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white mt-0.5">
+        ${icon}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-sm ${!notification.read ? 'text-white' : 'text-gray-300'} truncate">${notification.title}</h4>
+            <p class="text-xs text-gray-400 mt-0.5 line-clamp-2">${notification.message}</p>
+            <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
+          </div>
+          ${!notification.read ? `
+            <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Click to mark as read and navigate
+  div.addEventListener('click', () => {
+    if (!notification.read) {
+      dataManager.markAsRead(notification.id);
+      updateNotificationBadge();
+      loadNotificationDropdown();
+    }
+
+    // Navigate if action exists
+    if (notification.action && notification.action.type === 'navigate') {
+      const navItem = document.querySelector(`[data-section="${notification.action.target.replace('#', '')}"]`);
+      if (navItem) {
+        navItem.click();
+      }
+    } else {
+      // Default to notifications section
+      const navItem = document.querySelector('[data-section="notifications"]');
+      if (navItem) navItem.click();
+    }
+
+    // Close dropdown
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) {
+      dropdown.classList.add('hidden');
+      dropdown.classList.remove('flex', 'flex-col');
+    }
+  });
+
+  return div;
 }
 
 /**
