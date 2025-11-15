@@ -6,6 +6,8 @@
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   initPasswordToggle();
+  initPasswordStrength();
+  initFormValidation();
   initRegisterForm();
   initLoginForm();
   checkAuthState();
@@ -71,6 +73,183 @@ function initPasswordToggle() {
 }
 
 /**
+ * Initialize password strength indicator
+ */
+function initPasswordStrength() {
+  const passwordInput = document.getElementById('register-password');
+  const strengthDiv = document.getElementById('password-strength');
+  const strengthBar = document.getElementById('strength-bar');
+  const strengthText = document.getElementById('strength-text');
+  
+  if (passwordInput && strengthDiv && strengthBar && strengthText) {
+    passwordInput.addEventListener('input', (e) => {
+      const password = e.target.value;
+      
+      if (password.length === 0) {
+        strengthDiv.classList.add('hidden');
+        return;
+      }
+      
+      strengthDiv.classList.remove('hidden');
+      
+      // Calculate password strength
+      let strength = 0;
+      let feedback = [];
+      
+      if (password.length >= 8) strength += 1;
+      else feedback.push('at least 8 characters');
+      
+      if (/[a-z]/.test(password)) strength += 1;
+      else feedback.push('lowercase letter');
+      
+      if (/[A-Z]/.test(password)) strength += 1;
+      else feedback.push('uppercase letter');
+      
+      if (/[0-9]/.test(password)) strength += 1;
+      else feedback.push('number');
+      
+      if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+      else feedback.push('special character');
+      
+      // Update strength bar
+      const percentage = (strength / 5) * 100;
+      strengthBar.style.width = `${percentage}%`;
+      
+      // Update colors and text
+      if (strength <= 2) {
+        strengthBar.className = 'h-full transition-all duration-300 bg-red-500';
+        strengthText.textContent = 'Weak password';
+        strengthText.className = 'text-xs text-red-400';
+      } else if (strength <= 3) {
+        strengthBar.className = 'h-full transition-all duration-300 bg-yellow-500';
+        strengthText.textContent = 'Medium password';
+        strengthText.className = 'text-xs text-yellow-400';
+      } else if (strength <= 4) {
+        strengthBar.className = 'h-full transition-all duration-300 bg-blue-500';
+        strengthText.textContent = 'Good password';
+        strengthText.className = 'text-xs text-blue-400';
+      } else {
+        strengthBar.className = 'h-full transition-all duration-300 bg-green-500';
+        strengthText.textContent = 'Strong password';
+        strengthText.className = 'text-xs text-green-400';
+      }
+    });
+  }
+}
+
+/**
+ * Initialize form validation with real-time feedback
+ */
+function initFormValidation() {
+  // Register form validation
+  const registerForm = document.getElementById('register-form');
+  if (registerForm) {
+    const fullNameInput = document.getElementById('full-name');
+    const emailInput = document.getElementById('register-email');
+    const passwordInput = document.getElementById('register-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    // Full name validation
+    if (fullNameInput) {
+      fullNameInput.addEventListener('blur', () => {
+        const errorEl = document.getElementById('full-name-error');
+        if (fullNameInput.value.length < 2) {
+          showFieldError(errorEl, 'Name must be at least 2 characters');
+          fullNameInput.classList.add('border-red-500');
+        } else {
+          clearFieldError(errorEl);
+          fullNameInput.classList.remove('border-red-500');
+        }
+      });
+    }
+    
+    // Email validation
+    if (emailInput) {
+      emailInput.addEventListener('blur', () => {
+        const errorEl = document.getElementById('register-email-error');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailInput.value)) {
+          showFieldError(errorEl, 'Please enter a valid email address');
+          emailInput.classList.add('border-red-500');
+        } else {
+          clearFieldError(errorEl);
+          emailInput.classList.remove('border-red-500');
+        }
+      });
+    }
+    
+    // Confirm password match validation
+    if (confirmPasswordInput && passwordInput) {
+      confirmPasswordInput.addEventListener('input', () => {
+        const matchEl = document.getElementById('confirm-password-match');
+        if (confirmPasswordInput.value && confirmPasswordInput.value !== passwordInput.value) {
+          matchEl.textContent = 'Passwords do not match';
+          matchEl.className = 'text-xs mt-1 text-red-400';
+          matchEl.classList.remove('hidden');
+          confirmPasswordInput.classList.add('border-red-500');
+        } else if (confirmPasswordInput.value && confirmPasswordInput.value === passwordInput.value) {
+          matchEl.textContent = 'Passwords match';
+          matchEl.className = 'text-xs mt-1 text-green-400';
+          matchEl.classList.remove('hidden');
+          confirmPasswordInput.classList.remove('border-red-500');
+          confirmPasswordInput.classList.add('border-green-500');
+        } else {
+          matchEl.classList.add('hidden');
+          confirmPasswordInput.classList.remove('border-red-500', 'border-green-500');
+        }
+      });
+      
+      passwordInput.addEventListener('input', () => {
+        if (confirmPasswordInput.value) {
+          confirmPasswordInput.dispatchEvent(new Event('input'));
+        }
+      });
+    }
+  }
+  
+  // Login form validation
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    
+    if (emailInput) {
+      emailInput.addEventListener('blur', () => {
+        const errorEl = document.getElementById('login-email-error');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailInput.value && !emailRegex.test(emailInput.value)) {
+          showFieldError(errorEl, 'Please enter a valid email address');
+          emailInput.classList.add('border-red-500');
+        } else {
+          clearFieldError(errorEl);
+          emailInput.classList.remove('border-red-500');
+        }
+      });
+    }
+  }
+}
+
+/**
+ * Show field error message
+ */
+function showFieldError(errorEl, message) {
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.classList.remove('hidden');
+  }
+}
+
+/**
+ * Clear field error message
+ */
+function clearFieldError(errorEl) {
+  if (errorEl) {
+    errorEl.classList.add('hidden');
+    errorEl.textContent = '';
+  }
+}
+
+/**
  * Initialize registration form
  */
 function initRegisterForm() {
@@ -118,10 +297,15 @@ function initRegisterForm() {
       }
       
       // Show loading state
-      const submitButton = registerForm.querySelector('button[type="submit"]');
-      const originalText = submitButton.textContent;
-      submitButton.textContent = 'Creating Account...';
-      submitButton.disabled = true;
+      const submitButton = document.getElementById('register-submit-btn');
+      const btnText = document.getElementById('register-btn-text');
+      const btnLoading = document.getElementById('register-btn-loading');
+      
+      if (submitButton) {
+        submitButton.disabled = true;
+        if (btnText) btnText.classList.add('hidden');
+        if (btnLoading) btnLoading.classList.remove('hidden');
+      }
       
       try {
         // In production, replace this with actual API call
@@ -159,8 +343,11 @@ function initRegisterForm() {
         
       } catch (error) {
         showError(errorDiv, 'Registration failed. Please try again.');
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
+        if (submitButton) {
+          submitButton.disabled = false;
+          if (btnText) btnText.classList.remove('hidden');
+          if (btnLoading) btnLoading.classList.add('hidden');
+        }
       }
     });
   }
@@ -187,10 +374,15 @@ function initLoginForm() {
       if (errorDiv) errorDiv.classList.add('hidden');
       
       // Show loading state
-      const submitButton = loginForm.querySelector('button[type="submit"]');
-      const originalText = submitButton.textContent;
-      submitButton.textContent = 'Signing In...';
-      submitButton.disabled = true;
+      const submitButton = document.getElementById('login-submit-btn');
+      const btnText = document.getElementById('login-btn-text');
+      const btnLoading = document.getElementById('login-btn-loading');
+      
+      if (submitButton) {
+        submitButton.disabled = true;
+        if (btnText) btnText.classList.add('hidden');
+        if (btnLoading) btnLoading.classList.remove('hidden');
+      }
       
       try {
         // In production, replace this with actual API call
@@ -246,8 +438,11 @@ function initLoginForm() {
         
       } catch (error) {
         showError(errorDiv, 'Invalid email or password. Please try again.');
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
+        if (submitButton) {
+          submitButton.disabled = false;
+          if (btnText) btnText.classList.remove('hidden');
+          if (btnLoading) btnLoading.classList.add('hidden');
+        }
       }
     });
   }

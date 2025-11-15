@@ -12,8 +12,19 @@
     scroll-behavior: smooth;
   }
 
+  /* Smooth scrolling for all anchor links */
+  html {
+    scroll-padding-top: 80px;
+  }
+
   body {
     @apply bg-gray-900 text-gray-100 font-sans;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  a,
+  button {
+    transition: all 0.2s ease-in-out;
   }
 }
 
@@ -151,4 +162,46 @@ input[type="checkbox"]:checked::before {
 /* Custom radio button styling */
 input[type="radio"] {
   @apply w-4 h-4 text-blue-500 focus:ring-blue-500;
+}
+
+/* Enhanced smooth scroll behavior */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  * {
+    scroll-margin-top: 80px;
+  }
+}
+
+/* Custom checkbox toggle for login page */
+input[type="checkbox"].sr-only+div {
+  @apply transition-all duration-200;
+}
+
+/* Fixed toggle switch styling for Remember Me */
+input[type="checkbox"].sr-only+div {
+  position: relative;
+}
+
+input[type="checkbox"].sr-only+div>div {
+  @apply transition-transform duration-200 ease-in-out;
+}
+
+input[type="checkbox"].sr-only:checked+div>div {
+  transform: translateX(1.25rem);
+}
+
+/* Smooth focus transitions */
+input:focus,
+textarea:focus,
+select:focus {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Enhanced glass effect for mature look */
+.glass-effect {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
