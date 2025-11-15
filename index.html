@@ -28,6 +28,13 @@
           <a href="#releases" class="nav-link hover:text-blue-400 transition-colors">Releases</a>
           <a href="#contact" class="nav-link hover:text-blue-400 transition-colors">Contact</a>
         </div>
+        
+        <!-- Search Button -->
+        <button id="search-btn" class="hidden md:flex items-center text-gray-100 hover:text-blue-400 transition-colors" aria-label="Search">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </button>
 
         <!-- Mobile Menu Button -->
         <button id="mobile-menu-btn" class="md:hidden text-gray-100 focus:outline-none">
@@ -48,7 +55,86 @@
         </div>
       </div>
     </div>
+    
+    <!-- Search Overlay -->
+    <div id="search-overlay" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-start justify-center pt-32">
+      <div class="container mx-auto px-4 max-w-2xl">
+        <div class="glass-effect rounded-2xl p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search artists, releases, songs..."
+              class="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+              autocomplete="off"
+            >
+            <button id="close-search" class="text-gray-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="search-results" class="max-h-96 overflow-y-auto space-y-2"></div>
+        </div>
+      </div>
+    </div>
   </nav>
+  
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+  
+  <!-- Back to Top Button -->
+  <button id="back-to-top" class="fixed bottom-8 right-8 z-40 glass-effect p-3 rounded-full hover:bg-white/20 transition-all opacity-0 pointer-events-none">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+  </button>
+  
+  <!-- Music Player -->
+  <div id="music-player" class="fixed bottom-0 left-0 right-0 glass-effect border-t border-white/20 z-40 transform translate-y-full transition-transform duration-300">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex-shrink-0" id="player-album-art"></div>
+        <div class="flex-1 min-w-0">
+          <h4 id="player-title" class="font-semibold truncate">No track selected</h4>
+          <p id="player-artist" class="text-sm text-gray-400 truncate">Select a track to play</p>
+          <div class="flex items-center gap-2 mt-2">
+            <span id="player-current-time" class="text-xs text-gray-500">0:00</span>
+            <div class="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+              <div id="player-progress" class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" style="width: 0%"></div>
+            </div>
+            <span id="player-duration" class="text-xs text-gray-500">0:00</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="player-prev" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            </svg>
+          </button>
+          <button id="player-play-pause" class="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full hover:shadow-lg transition-all">
+            <svg id="play-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg id="pause-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+            </svg>
+          </button>
+          <button id="player-next" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+          <button id="player-close" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <audio id="audio-element" preload="metadata"></audio>
+  </div>
 
   <!-- Hero Section -->
   <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
@@ -81,6 +167,30 @@
       <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
       </svg>
+    </div>
+  </section>
+
+  <!-- Statistics Section -->
+  <section id="statistics" class="py-16 bg-gradient-to-r from-blue-900/30 via-purple-900/30 to-pink-900/30">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-display font-bold text-gradient mb-2" data-count="50">0</div>
+          <p class="text-gray-400">Artists</p>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-display font-bold text-gradient mb-2" data-count="200">0</div>
+          <p class="text-gray-400">Releases</p>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-display font-bold text-gradient mb-2" data-count="10">0</div>
+          <p class="text-gray-400">Million Streams</p>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-display font-bold text-gradient mb-2" data-count="15">0</div>
+          <p class="text-gray-400">Years Experience</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -140,7 +250,7 @@
       </h2>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Artist Card 1 -->
-        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer">
+        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer artist-card" data-artist="Nova Wave" data-genre="Electronic • Synthwave">
           <div
             class="w-full h-64 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-4 group-hover:scale-105 transition-transform duration-300">
           </div>
@@ -148,10 +258,11 @@
           <p class="text-gray-400 mb-4">Electronic • Synthwave</p>
           <p class="text-gray-300">Pioneering the future of electronic music with innovative soundscapes and mesmerizing
             beats.</p>
+          <button class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium">View Details →</button>
         </div>
 
         <!-- Artist Card 2 -->
-        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer">
+        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer artist-card" data-artist="Echo Valley" data-genre="Indie • Alternative">
           <div
             class="w-full h-64 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl mb-4 group-hover:scale-105 transition-transform duration-300">
           </div>
@@ -159,16 +270,18 @@
           <p class="text-gray-400 mb-4">Indie • Alternative</p>
           <p class="text-gray-300">Crafting intimate indie anthems that resonate with the soul and capture raw emotion.
           </p>
+          <button class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium">View Details →</button>
         </div>
 
         <!-- Artist Card 3 -->
-        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer">
+        <div class="glass-effect rounded-2xl p-6 hover-lift group cursor-pointer artist-card" data-artist="Midnight Drive" data-genre="Hip-Hop • R&B">
           <div
             class="w-full h-64 bg-gradient-to-br from-pink-500 to-orange-600 rounded-xl mb-4 group-hover:scale-105 transition-transform duration-300">
           </div>
           <h3 class="text-2xl font-display font-semibold mb-2">Midnight Drive</h3>
           <p class="text-gray-400 mb-4">Hip-Hop • R&B</p>
           <p class="text-gray-300">Blending smooth R&B vibes with cutting-edge hip-hop production and lyrical depth.</p>
+          <button class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium">View Details →</button>
         </div>
       </div>
     </div>
@@ -177,14 +290,35 @@
   <!-- Releases Section -->
   <section id="releases" class="py-20 bg-gray-800/50">
     <div class="container mx-auto px-4">
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-center mb-12 text-gradient">
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-center mb-8 text-gradient">
         Latest Releases
       </h2>
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Filter and Sort Controls -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 max-w-6xl mx-auto">
+        <div class="flex flex-wrap gap-2">
+          <button class="filter-btn active px-4 py-2 glass-effect rounded-full text-sm hover:bg-white/20 transition-all" data-filter="all">All</button>
+          <button class="filter-btn px-4 py-2 glass-effect rounded-full text-sm hover:bg-white/20 transition-all" data-filter="album">Albums</button>
+          <button class="filter-btn px-4 py-2 glass-effect rounded-full text-sm hover:bg-white/20 transition-all" data-filter="ep">EPs</button>
+          <button class="filter-btn px-4 py-2 glass-effect rounded-full text-sm hover:bg-white/20 transition-all" data-filter="single">Singles</button>
+        </div>
+        <select id="sort-select" class="px-4 py-2 glass-effect rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="name">Name A-Z</option>
+        </select>
+      </div>
+      
+      <div id="releases-grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Release Card 1 -->
-        <div class="glass-effect rounded-xl p-4 hover-lift group cursor-pointer">
-          <div
-            class="w-full aspect-square bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300">
+        <div class="release-card glass-effect rounded-xl p-4 hover-lift group cursor-pointer" data-type="album" data-artist="Nova Wave" data-date="2024-01-15" data-title="Neon Dreams">
+          <div class="relative">
+            <div class="w-full aspect-square bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300"></div>
+            <button class="absolute bottom-6 right-6 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity play-release-btn">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
           </div>
           <h3 class="font-semibold mb-1">Neon Dreams</h3>
           <p class="text-sm text-gray-400 mb-2">Nova Wave</p>
@@ -192,9 +326,14 @@
         </div>
 
         <!-- Release Card 2 -->
-        <div class="glass-effect rounded-xl p-4 hover-lift group cursor-pointer">
-          <div
-            class="w-full aspect-square bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300">
+        <div class="release-card glass-effect rounded-xl p-4 hover-lift group cursor-pointer" data-type="ep" data-artist="Echo Valley" data-date="2024-02-20" data-title="City Lights">
+          <div class="relative">
+            <div class="w-full aspect-square bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300"></div>
+            <button class="absolute bottom-6 right-6 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity play-release-btn">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
           </div>
           <h3 class="font-semibold mb-1">City Lights</h3>
           <p class="text-sm text-gray-400 mb-2">Echo Valley</p>
@@ -202,9 +341,14 @@
         </div>
 
         <!-- Release Card 3 -->
-        <div class="glass-effect rounded-xl p-4 hover-lift group cursor-pointer">
-          <div
-            class="w-full aspect-square bg-gradient-to-br from-pink-400 to-red-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300">
+        <div class="release-card glass-effect rounded-xl p-4 hover-lift group cursor-pointer" data-type="single" data-artist="Midnight Drive" data-date="2024-03-10" data-title="After Hours">
+          <div class="relative">
+            <div class="w-full aspect-square bg-gradient-to-br from-pink-400 to-red-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300"></div>
+            <button class="absolute bottom-6 right-6 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity play-release-btn">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
           </div>
           <h3 class="font-semibold mb-1">After Hours</h3>
           <p class="text-sm text-gray-400 mb-2">Midnight Drive</p>
@@ -212,14 +356,45 @@
         </div>
 
         <!-- Release Card 4 -->
-        <div class="glass-effect rounded-xl p-4 hover-lift group cursor-pointer">
-          <div
-            class="w-full aspect-square bg-gradient-to-br from-orange-400 to-yellow-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300">
+        <div class="release-card glass-effect rounded-xl p-4 hover-lift group cursor-pointer" data-type="album" data-artist="Various Artists" data-date="2024-04-05" data-title="Summer Vibes">
+          <div class="relative">
+            <div class="w-full aspect-square bg-gradient-to-br from-orange-400 to-yellow-500 rounded-lg mb-4 group-hover:scale-105 transition-transform duration-300"></div>
+            <button class="absolute bottom-6 right-6 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity play-release-btn">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
           </div>
           <h3 class="font-semibold mb-1">Summer Vibes</h3>
           <p class="text-sm text-gray-400 mb-2">Various Artists</p>
           <p class="text-xs text-gray-500">2024 • Compilation</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter Section -->
+  <section id="newsletter" class="py-16 bg-gradient-to-r from-blue-900/30 via-purple-900/30 to-pink-900/30">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-display font-bold mb-4 text-gradient">Stay Updated</h2>
+        <p class="text-gray-300 mb-8">Subscribe to our newsletter for the latest releases, artist news, and exclusive content.</p>
+        <form id="newsletter-form" class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+          <input 
+            type="email" 
+            id="newsletter-email" 
+            placeholder="Enter your email"
+            required
+            class="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+          >
+          <button 
+            type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all hover-lift whitespace-nowrap"
+          >
+            Subscribe
+          </button>
+        </form>
+        <div id="newsletter-message" class="mt-4 text-sm"></div>
       </div>
     </div>
   </section>
@@ -299,6 +474,22 @@
       </p>
     </div>
   </footer>
+  
+  <!-- Artist/Release Modal -->
+  <div id="detail-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-effect rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <button id="close-modal" class="float-right text-gray-400 hover:text-white transition-colors mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div id="modal-content" class="clear-both">
+          <!-- Modal content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="src/main.js"></script>
 </body>
