@@ -339,6 +339,31 @@
 
       <!-- Library Section -->
       <section id="library" class="dashboard-section hidden">
+        <!-- Audio Instructions Banner -->
+        <div class="mb-6 glass-effect rounded-xl p-4 border-l-4 border-blue-500">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-blue-300 mb-1">How to Play Audio</h3>
+              <p class="text-sm text-gray-400 mb-2">Tracks with the 🔊 Audio badge have audio files. Click on any track
+                card to play it!</p>
+              <div class="flex items-center gap-4 text-xs text-gray-500">
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                  🔊 = Has Audio
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                  No Audio = Simulated
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="mb-8">
           <h1 class="text-3xl md:text-4xl font-display font-bold mb-2 text-gradient">My Library</h1>
           <p class="text-gray-400">All your music in one place</p>
@@ -762,6 +787,9 @@
       </section>
     </main>
   </div>
+
+  <!-- Hidden Audio Element -->
+  <audio id="audio-player" preload="metadata" style="display: none;"></audio>
 
   <!-- Music Player -->
   <div id="music-player"

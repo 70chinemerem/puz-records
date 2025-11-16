@@ -13,8 +13,8 @@ import { logout, getCurrentUser, isAuthenticated } from './auth.js';
 // 2. Update the 'audioUrl' property with the path to your audio file
 // 3. Supported formats: MP3, OGG, WAV, M4A
 const SAMPLE_TRACKS = [
-  { id: 1, title: 'Neon Dreams', artist: 'Nova Wave', album: 'Neon Dreams', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'audio/neon-dreams.mp3' },
-  { id: 2, title: 'City Lights', artist: 'Echo Valley', album: 'Urban Nights', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'audio/city-lights.mp3' },
+  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'src/audio/first.mp3' },
+  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'https://www.boomplay.com/songs/207549658?srModel=COPYLINK&srList=WEB' },
   { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600', audioUrl: 'audio/after-hours.mp3' },
   { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600', audioUrl: 'audio/electric-pulse.mp3' },
   { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600', audioUrl: 'audio/ocean-breeze.mp3' },
@@ -36,6 +36,25 @@ class DashboardData {
     // Initialize data if it doesn't exist
     if (!localStorage.getItem(`dashboard_library_${this.userId}`)) {
       localStorage.setItem(`dashboard_library_${this.userId}`, JSON.stringify(SAMPLE_TRACKS));
+    } else {
+      // Update existing tracks with audioUrl if missing
+      const existingLibrary = this.getLibrary();
+      const updated = existingLibrary.map(track => {
+        // Find matching track in SAMPLE_TRACKS by ID
+        const sampleTrack = SAMPLE_TRACKS.find(st => st.id === track.id);
+        if (sampleTrack) {
+          // Merge sample track data (including audioUrl) with existing track
+          return { ...track, ...sampleTrack };
+        }
+        return track;
+      });
+      // Also add any new tracks from SAMPLE_TRACKS that don't exist
+      SAMPLE_TRACKS.forEach(sampleTrack => {
+        if (!updated.find(t => t.id === sampleTrack.id)) {
+          updated.push(sampleTrack);
+        }
+      });
+      localStorage.setItem(`dashboard_library_${this.userId}`, JSON.stringify(updated));
     }
     if (!localStorage.getItem(`dashboard_playlists_${this.userId}`)) {
       localStorage.setItem(`dashboard_playlists_${this.userId}`, JSON.stringify([
@@ -100,6 +119,31 @@ class DashboardData {
 
   getLibrary() {
     return JSON.parse(localStorage.getItem(`dashboard_library_${this.userId}`) || '[]');
+  }
+
+  /**
+   * Update a track in the library
+   * @param {number} trackId - The ID of the track to update
+   * @param {object} trackData - The data to update (e.g., { audioUrl: 'audio/song.mp3' })
+   */
+  updateTrack(trackId, trackData) {
+    const library = this.getLibrary();
+    const index = library.findIndex(t => t.id === trackId);
+    if (index !== -1) {
+      library[index] = { ...library[index], ...trackData };
+      localStorage.setItem(`dashboard_library_${this.userId}`, JSON.stringify(library));
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Add audio URL to a track
+   * @param {number} trackId - The ID of the track
+   * @param {string} audioUrl - The path to the audio file
+   */
+  addAudioToTrack(trackId, audioUrl) {
+    return this.updateTrack(trackId, { audioUrl });
   }
 
   getPlaylists() {
@@ -290,6 +334,31 @@ document.addEventListener('DOMContentLoaded', () => {
   initProfile();
   initMusicPlayer();
   initAccountType();
+
+  // Debug: Test audio element on load
+  setTimeout(() => {
+    const audioEl = document.getElementById('audio-player');
+    if (audioEl) {
+      console.log('✅ Audio element exists in DOM');
+      console.log('Audio element details:', {
+        id: audioEl.id,
+        src: audioEl.src,
+        readyState: audioEl.readyState,
+        paused: audioEl.paused,
+        volume: audioEl.volume
+      });
+    } else {
+      console.error('❌ Audio element NOT found in DOM!');
+      console.error('Make sure <audio id="audio-player"> exists in dashboard.html');
+    }
+
+    // Check if musicPlayer has audio element
+    if (musicPlayer.audioElement) {
+      console.log('✅ musicPlayer.audioElement is set');
+    } else {
+      console.error('❌ musicPlayer.audioElement is null!');
+    }
+  }, 500);
   initNotificationSystem(); // Initialize notification system
   loadUserProfile();
   loadAccountType(); // Load account type on page load
@@ -852,22 +921,53 @@ function createLibraryCard(track) {
   const favorites = dataManager.getFavorites();
   const isFavorite = favorites.includes(track.id);
 
+  // Check if track has audio
+  const hasAudio = track.audioUrl && track.audioUrl.trim() !== '';
+  const isCurrentlyPlaying = musicPlayer.currentTrack && musicPlayer.currentTrack.id === track.id && musicPlayer.isPlaying;
+
   const card = document.createElement('div');
-  card.className = 'glass-effect rounded-xl p-4 hover-lift group cursor-pointer';
+  card.className = `glass-effect rounded-xl p-4 hover-lift group cursor-pointer ${isCurrentlyPlaying ? 'ring-2 ring-blue-500' : ''}`;
   card.dataset.trackId = track.id;
 
   card.innerHTML = `
     <div class="w-full aspect-square bg-gradient-to-br ${track.color} rounded-lg mb-3 group-hover:scale-105 transition-transform relative overflow-hidden">
-      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-        <button class="play-track-btn w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all" data-track-id="${track.id}">
-          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </button>
-      </div>
+      ${hasAudio ? `
+        <div class="absolute top-2 right-2 bg-green-500/80 text-white text-xs px-2 py-1 rounded-full font-semibold">
+          🔊 Audio
+        </div>
+      ` : `
+        <div class="absolute top-2 right-2 bg-gray-500/80 text-white text-xs px-2 py-1 rounded-full">
+          No Audio
+        </div>
+      `}
+      ${isCurrentlyPlaying ? `
+        <div class="absolute inset-0 flex items-center justify-center bg-black/40">
+          <div class="w-16 h-16 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm animate-pulse">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+          </div>
+        </div>
+      ` : `
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+          <button class="play-track-btn w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all" data-track-id="${track.id}">
+            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+        </div>
+      `}
     </div>
-    <h3 class="font-semibold truncate mb-1">${track.title}</h3>
+    <h3 class="font-semibold truncate mb-1">${track.title}${isCurrentlyPlaying ? ' <span class="text-blue-400 text-xs">▶ Playing</span>' : ''}</h3>
     <p class="text-sm text-gray-400 truncate">${track.artist}</p>
+    ${hasAudio ? `
+      <p class="text-xs text-green-400 mt-1 flex items-center gap-1">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        Click to play audio
+      </p>
+    ` : ''}
     <div class="mt-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
       <button class="favorite-btn p-1.5 hover:bg-white/10 rounded transition-colors ${isFavorite ? 'text-red-400' : ''}" data-track-id="${track.id}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
         <svg class="w-4 h-4 ${isFavorite ? 'fill-current' : ''}" ${isFavorite ? 'fill="currentColor"' : 'fill="none"'} stroke="currentColor" viewBox="0 0 24 24">
@@ -1875,16 +1975,23 @@ function showAddTracksToPlaylistModal(playlistId) {
  * Initialize quick actions
  */
 function initQuickActions() {
-  const createPlaylistBtn = document.querySelector('#overview button:contains("Create New Playlist")');
-  if (createPlaylistBtn) {
-    createPlaylistBtn.addEventListener('click', createPlaylist);
-  }
-
-  const discoverBtn = document.querySelector('#overview button:contains("Discover New Music")');
-  if (discoverBtn) {
-    discoverBtn.addEventListener('click', () => {
-      // Navigate to library or show recommendations
-      document.querySelector('[data-section="library"]')?.click();
+  // Find buttons by checking their text content (since :contains() is not valid CSS)
+  const overviewSection = document.querySelector('#overview');
+  if (overviewSection) {
+    const buttons = overviewSection.querySelectorAll('button');
+    buttons.forEach(btn => {
+      const text = btn.textContent.trim();
+      if (text.includes('Create New Playlist') || text.includes('New Playlist')) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          createPlaylist();
+        });
+      } else if (text.includes('Discover New Music')) {
+        btn.addEventListener('click', () => {
+          // Navigate to library or show recommendations
+          document.querySelector('[data-section="library"]')?.click();
+        });
+      }
     });
   }
 }
@@ -1900,7 +2007,8 @@ const musicPlayer = {
   repeatMode: 'off', // 'off', 'all', 'one'
   queue: [],
   currentIndex: -1,
-  progressInterval: null
+  progressInterval: null,
+  audioElement: null // HTML Audio element
 };
 
 /**
@@ -1909,6 +2017,72 @@ const musicPlayer = {
 function initMusicPlayer() {
   const player = document.getElementById('music-player');
   if (!player) return;
+
+  // Initialize audio element
+  const audioElement = document.getElementById('audio-player');
+  if (audioElement) {
+    musicPlayer.audioElement = audioElement;
+    console.log('✅ Audio element found and initialized');
+
+    // Set initial volume
+    audioElement.volume = musicPlayer.volume;
+
+    // Audio event listeners
+    audioElement.addEventListener('loadedmetadata', () => {
+      if (audioElement.duration) {
+        musicPlayer.duration = Math.floor(audioElement.duration);
+        updateProgress();
+        const durationEl = document.getElementById('player-duration');
+        if (durationEl) {
+          durationEl.textContent = formatDuration(musicPlayer.duration);
+        }
+      }
+    });
+
+    audioElement.addEventListener('timeupdate', () => {
+      musicPlayer.currentTime = Math.floor(audioElement.currentTime);
+      updateProgress();
+    });
+
+    audioElement.addEventListener('ended', () => {
+      // Track finished playing
+      if (musicPlayer.repeatMode === 'one') {
+        audioElement.currentTime = 0;
+        audioElement.play().catch(console.error);
+      } else {
+        playNext();
+      }
+    });
+
+    audioElement.addEventListener('error', (e) => {
+      console.error('Audio error:', e);
+      showNotification('Error loading audio file. Please check if the file exists.', 'error');
+      musicPlayer.isPlaying = false;
+      updatePlayPauseButton();
+    });
+
+    audioElement.addEventListener('play', () => {
+      musicPlayer.isPlaying = true;
+      updatePlayPauseButton();
+      startProgressTimer();
+    });
+
+    audioElement.addEventListener('pause', () => {
+      musicPlayer.isPlaying = false;
+      updatePlayPauseButton();
+      stopProgressTimer();
+    });
+
+    audioElement.addEventListener('canplay', () => {
+      // Audio is ready to play
+      if (musicPlayer.isPlaying) {
+        audioElement.play().catch(err => {
+          console.error('Play error:', err);
+          showNotification('Unable to play audio. User interaction may be required.', 'error');
+        });
+      }
+    });
+  }
 
   // Play/Pause button
   const playPauseBtn = document.getElementById('player-play-pause-btn');
@@ -2000,43 +2174,160 @@ function playTrack(trackId) {
   const library = dataManager.getLibrary();
   const track = library.find(t => t.id === trackId);
 
-  if (track) {
-    // Add to recently played
-    dataManager.addToRecent(trackId);
+  if (!track) return;
 
-    // Set current track
-    musicPlayer.currentTrack = track;
-    musicPlayer.duration = track.duration;
-    musicPlayer.currentTime = 0;
+  // Add to recently played
+  dataManager.addToRecent(trackId);
+
+  // Set current track
+  musicPlayer.currentTrack = track;
+  musicPlayer.currentTime = 0;
+
+  // Update queue if empty or if track is not in current queue
+  if (musicPlayer.queue.length === 0 || !musicPlayer.queue.includes(trackId)) {
+    musicPlayer.queue = library.map(t => t.id);
+    musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
+  } else {
+    // Update current index if track is already in queue
+    musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
+  }
+
+  // Load and play audio if audio URL exists
+  if (musicPlayer.audioElement && track.audioUrl) {
+    console.log('🎵 Attempting to play:', track.title);
+    console.log('📁 Audio URL:', track.audioUrl);
+    console.log('🔊 Audio element:', musicPlayer.audioElement);
+
+    try {
+      // Stop current playback if any
+      musicPlayer.audioElement.pause();
+      musicPlayer.audioElement.currentTime = 0;
+
+      // Set new source
+      console.log('📂 Setting audio source to:', track.audioUrl);
+      musicPlayer.audioElement.src = track.audioUrl;
+      musicPlayer.audioElement.load();
+      console.log('✅ Audio loaded, waiting for metadata...');
+
+      // Wait for metadata to load before playing
+      const metadataHandler = () => {
+        console.log('📊 Metadata loaded. Duration:', musicPlayer.audioElement.duration);
+        if (musicPlayer.audioElement.duration) {
+          musicPlayer.duration = Math.floor(musicPlayer.audioElement.duration);
+          // Update track duration in library if it was estimated
+          if (track.duration !== musicPlayer.duration) {
+            track.duration = musicPlayer.duration;
+            if (dataManager.updateTrack) {
+              dataManager.updateTrack(trackId, { duration: musicPlayer.duration });
+            }
+          }
+        } else {
+          // Fallback to track duration if audio metadata not available
+          musicPlayer.duration = track.duration || 225;
+        }
+        updateProgress();
+      };
+
+      // Error handler for loading
+      const errorHandler = (e) => {
+        console.error('❌ Audio loading error:', e);
+        console.error('Error details:', musicPlayer.audioElement.error);
+        if (musicPlayer.audioElement.error) {
+          const error = musicPlayer.audioElement.error;
+          let errorMsg = 'Unknown error';
+          switch (error.code) {
+            case error.MEDIA_ERR_ABORTED:
+              errorMsg = 'Audio loading aborted';
+              break;
+            case error.MEDIA_ERR_NETWORK:
+              errorMsg = 'Network error - file not found or CORS issue';
+              break;
+            case error.MEDIA_ERR_DECODE:
+              errorMsg = 'Audio decode error - file may be corrupted';
+              break;
+            case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+              errorMsg = 'Audio format not supported';
+              break;
+          }
+          showNotification(`Audio Error: ${errorMsg}. Check console for details.`, 'error');
+        }
+        musicPlayer.isPlaying = false;
+        updatePlayPauseButton();
+      };
+
+      musicPlayer.audioElement.addEventListener('loadedmetadata', metadataHandler, { once: true });
+      musicPlayer.audioElement.addEventListener('error', errorHandler, { once: true });
+      musicPlayer.audioElement.addEventListener('canplay', () => {
+        console.log('✅ Audio can play now');
+      }, { once: true });
+
+      // Play audio
+      musicPlayer.isPlaying = true;
+      console.log('▶️ Attempting to play audio...');
+      const playPromise = musicPlayer.audioElement.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback started successfully
+            console.log('✅ Audio playback started successfully!');
+            console.log('🎵 Now playing:', track.title);
+            showNotification(`Now playing: ${track.title}`, 'success');
+          })
+          .catch(error => {
+            console.error('❌ Playback error:', error);
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            // If autoplay is blocked, just show the player
+            musicPlayer.isPlaying = false;
+            if (error.name === 'NotAllowedError') {
+              showNotification('Click the play button to start audio (browser autoplay blocked)', 'info');
+            } else {
+              showNotification(`Playback error: ${error.message}`, 'error');
+            }
+            updatePlayPauseButton();
+          });
+      } else {
+        console.warn('⚠️ play() returned undefined');
+      }
+    } catch (error) {
+      console.error('Error loading audio:', error);
+      showNotification(`Error loading audio file: ${error.message}`, 'error');
+      musicPlayer.isPlaying = false;
+      // Fallback to simulated playback
+      musicPlayer.duration = track.duration || 225;
+      startProgressTimer();
+    }
+  } else {
+    // No audio URL or no audio element - use simulated playback
+    if (!musicPlayer.audioElement) {
+      console.error('❌ Audio element not found! Check if <audio id="audio-player"> exists in HTML.');
+    }
+    if (!track.audioUrl) {
+      console.warn('⚠️ No audioUrl for track:', track.title);
+    }
+    console.warn('⚠️ Using simulated playback for:', track.title);
+    musicPlayer.duration = track.duration || 225;
     musicPlayer.isPlaying = true;
-
-    // Update queue if empty or if track is not in current queue
-    if (musicPlayer.queue.length === 0 || !musicPlayer.queue.includes(trackId)) {
-      musicPlayer.queue = library.map(t => t.id);
-      musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
-    } else {
-      // Update current index if track is already in queue
-      musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
-    }
-
-    // Show and update player
-    showMusicPlayer();
-    updatePlayerUI();
     startProgressTimer();
+  }
 
-    // Update UI
-    initRecent();
-    loadRecentlyPlayedPreview();
+  // Show and update player
+  showMusicPlayer();
+  updatePlayerUI();
 
-    // Update all sections that might show this track
-    const currentSection = document.querySelector('.dashboard-section:not(.hidden)');
-    if (currentSection) {
-      const sectionId = currentSection.id;
-      if (sectionId === 'overview') loadOverview();
-      else if (sectionId === 'library') initLibrary();
-      else if (sectionId === 'recent') initRecent();
-      else if (sectionId === 'profile') loadProfile();
-    }
+  // Update UI
+  initRecent();
+  loadRecentlyPlayedPreview();
+
+  // Update all sections that might show this track
+  const currentSection = document.querySelector('.dashboard-section:not(.hidden)');
+  if (currentSection) {
+    const sectionId = currentSection.id;
+    if (sectionId === 'overview') loadOverview();
+    else if (sectionId === 'library') initLibrary();
+    else if (sectionId === 'recent') initRecent();
+    else if (sectionId === 'profile') loadProfile();
   }
 }
 
@@ -2136,13 +2427,28 @@ function updatePlayerFavoriteButton() {
 function togglePlayPause() {
   if (!musicPlayer.currentTrack) return;
 
-  musicPlayer.isPlaying = !musicPlayer.isPlaying;
-  updatePlayPauseButton();
-
-  if (musicPlayer.isPlaying) {
-    startProgressTimer();
+  if (musicPlayer.audioElement && musicPlayer.currentTrack.audioUrl) {
+    // Use real audio element
+    if (musicPlayer.isPlaying) {
+      musicPlayer.audioElement.pause();
+    } else {
+      const playPromise = musicPlayer.audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Playback error:', error);
+          showNotification('Unable to play audio', 'error');
+        });
+      }
+    }
   } else {
-    stopProgressTimer();
+    // Simulated playback
+    musicPlayer.isPlaying = !musicPlayer.isPlaying;
+    updatePlayPauseButton();
+    if (musicPlayer.isPlaying) {
+      startProgressTimer();
+    } else {
+      stopProgressTimer();
+    }
   }
 }
 
@@ -3843,7 +4149,7 @@ function loadProfileActivity() {
     const track = library.find(t => t.id === item.trackId);
     if (track) {
       const activityItem = document.createElement('div');
-      activityItem.className = 'flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 transition-colors';
+      activityItem.className = 'flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 transition-colors cursor-pointer';
       activityItem.innerHTML = `
         <div class="w-10 h-10 bg-gradient-to-br ${track.color} rounded-lg flex items-center justify-center flex-shrink-0">
           <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -3855,6 +4161,10 @@ function loadProfileActivity() {
           <p class="text-xs text-gray-400 truncate">${formatDate(item.playedAt)}</p>
         </div>
       `;
+      // Make activity item clickable to play track
+      activityItem.addEventListener('click', () => {
+        playTrack(track.id);
+      });
       container.appendChild(activityItem);
     }
   });
