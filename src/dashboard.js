@@ -13,8 +13,8 @@ import { logout, getCurrentUser, isAuthenticated } from './auth.js';
 // 2. Update the 'audioUrl' property with the path to your audio file
 // 3. Supported formats: MP3, OGG, WAV, M4A
 const SAMPLE_TRACKS = [
-  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'src/audio/first.mp3' },
-  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'https://www.boomplay.com/songs/207549658?srModel=COPYLINK&srList=WEB' },
+  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'img="src/', audioUrl: 'src/audio/first.mp3' },
+  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'src/audio/am sorry.mp3' }, // Note: Boomplay URLs don't work - need direct audio file URL
   { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600', audioUrl: 'audio/after-hours.mp3' },
   { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600', audioUrl: 'audio/electric-pulse.mp3' },
   { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600', audioUrl: 'audio/ocean-breeze.mp3' },
@@ -2453,11 +2453,26 @@ function togglePlayPause() {
 }
 
 /**
- * Start progress timer
+ * Start progress timer (only for simulated playback)
  */
 function startProgressTimer() {
   stopProgressTimer();
 
+  // Only use timer if no real audio element or no audio URL
+  if (musicPlayer.audioElement && musicPlayer.currentTrack?.audioUrl) {
+    // Real audio element handles timeupdate via event listener
+    // But we still update UI periodically for smoothness
+    musicPlayer.progressInterval = setInterval(() => {
+      if (musicPlayer.audioElement && !musicPlayer.audioElement.paused) {
+        // Sync currentTime from audio element
+        musicPlayer.currentTime = Math.floor(musicPlayer.audioElement.currentTime);
+        updateProgress();
+      }
+    }, 100);
+    return;
+  }
+
+  // Simulated playback timer
   musicPlayer.progressInterval = setInterval(() => {
     if (musicPlayer.isPlaying && musicPlayer.currentTrack) {
       musicPlayer.currentTime += 1;
@@ -2511,7 +2526,15 @@ function seekTrack(e) {
 
   const rect = e.currentTarget.getBoundingClientRect();
   const percent = ((e.clientX - rect.left) / rect.width);
-  musicPlayer.currentTime = Math.floor(musicPlayer.duration * Math.max(0, Math.min(1, percent)));
+  const newTime = Math.floor(musicPlayer.duration * Math.max(0, Math.min(1, percent)));
+  
+  musicPlayer.currentTime = newTime;
+  
+  // Update audio element if it exists
+  if (musicPlayer.audioElement && musicPlayer.currentTrack.audioUrl) {
+    musicPlayer.audioElement.currentTime = newTime;
+  }
+  
   updateProgress();
 }
 
@@ -2612,6 +2635,11 @@ function adjustVolume(e) {
   const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   musicPlayer.volume = percent;
 
+  // Update audio element volume
+  if (musicPlayer.audioElement) {
+    musicPlayer.audioElement.volume = percent;
+  }
+
   const volumeLevel = document.getElementById('player-volume-level');
   if (volumeLevel) {
     volumeLevel.style.width = `${percent * 100}%`;
@@ -2624,11 +2652,29 @@ function adjustVolume(e) {
  * Toggle mute
  */
 function toggleMute() {
-  const savedVolume = musicPlayer.volume;
-  if (musicPlayer.volume > 0) {
-    musicPlayer.volume = 0;
+  if (musicPlayer.audioElement) {
+    // Use real audio element
+    if (musicPlayer.audioElement.volume > 0) {
+      // Store current volume before muting
+      if (musicPlayer.volume > 0) {
+        musicPlayer.audioElement.dataset.savedVolume = musicPlayer.volume.toString();
+      }
+      musicPlayer.audioElement.volume = 0;
+      musicPlayer.volume = 0;
+    } else {
+      // Restore volume
+      const savedVolume = parseFloat(musicPlayer.audioElement.dataset.savedVolume) || 0.7;
+      musicPlayer.audioElement.volume = savedVolume;
+      musicPlayer.volume = savedVolume;
+    }
   } else {
-    musicPlayer.volume = savedVolume || 0.7;
+    // Simulated playback
+    const savedVolume = musicPlayer.volume > 0 ? musicPlayer.volume : 0.7;
+    if (musicPlayer.volume > 0) {
+      musicPlayer.volume = 0;
+    } else {
+      musicPlayer.volume = savedVolume;
+    }
   }
 
   const volumeLevel = document.getElementById('player-volume-level');
