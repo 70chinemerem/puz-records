@@ -12,9 +12,15 @@ import { logout, getCurrentUser, isAuthenticated } from './auth.js';
 // 1. Place audio files in a folder (e.g., 'audio/' or 'assets/audio/')
 // 2. Update the 'audioUrl' property with the path to your audio file
 // 3. Supported formats: MP3, OGG, WAV, M4A
+// Sample tracks with audio URLs and cover images
+// To add cover images:
+// 1. Place image files in a folder (e.g., 'src/images/' or 'images/')
+// 2. Add 'coverImage' property with the path to your image file
+// 3. Supported formats: JPG, PNG, WebP
+// 4. If no coverImage is provided, a gradient background will be used
 const SAMPLE_TRACKS = [
-  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'img="src/', audioUrl: 'src/audio/first.mp3' },
-  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'src/audio/am sorry.mp3' }, // Note: Boomplay URLs don't work - need direct audio file URL
+  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'src/audio/first.mp3', coverImage: 'src/images/with-you.jpg' }, // Add cover image path here
+  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'src/audio/am sorry.mp3', coverImage: 'src/images/sky b.jpeg' }, // Add cover image path here
   { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600', audioUrl: 'audio/after-hours.mp3' },
   { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600', audioUrl: 'audio/electric-pulse.mp3' },
   { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600', audioUrl: 'audio/ocean-breeze.mp3' },
@@ -912,6 +918,34 @@ function initLibrary() {
 
   // Initialize filter tabs
   initLibraryFilters();
+}
+
+/**
+ * Helper function to create track image/cover element
+ * @param {Object} track - Track object
+ * @param {string} size - Size class (e.g., 'w-12 h-12', 'w-16 h-16', 'w-full aspect-square')
+ * @param {string} rounded - Rounded corners class (e.g., 'rounded', 'rounded-lg', 'rounded-xl')
+ * @returns {string} HTML string for the image element
+ */
+function createTrackImage(track, size = 'w-16 h-16', rounded = 'rounded-lg') {
+  const hasCoverImage = track.coverImage && track.coverImage.trim() !== '';
+  const color = track.color || 'from-blue-500 to-purple-600';
+
+  if (hasCoverImage) {
+    return `
+      <div class="${size} ${rounded} flex-shrink-0 bg-gray-800" 
+           style="background-image: url('${track.coverImage}'); background-size: cover; background-position: center;">
+      </div>
+    `;
+  } else {
+    return `
+      <div class="${size} ${rounded} flex-shrink-0 bg-gradient-to-br ${color} flex items-center justify-center">
+        <svg class="w-6 h-6 text-white/50" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>
+    `;
+  }
 }
 
 /**
@@ -2029,12 +2063,19 @@ function initMusicPlayer() {
 
     // Audio event listeners
     audioElement.addEventListener('loadedmetadata', () => {
-      if (audioElement.duration) {
+      if (audioElement.duration && audioElement.duration !== Infinity) {
         musicPlayer.duration = Math.floor(audioElement.duration);
         updateProgress();
         const durationEl = document.getElementById('player-duration');
         if (durationEl) {
           durationEl.textContent = formatDuration(musicPlayer.duration);
+        }
+        // Update track duration in library if it was estimated
+        if (musicPlayer.currentTrack && musicPlayer.currentTrack.duration !== musicPlayer.duration) {
+          musicPlayer.currentTrack.duration = musicPlayer.duration;
+          if (dataManager.updateTrack) {
+            dataManager.updateTrack(musicPlayer.currentTrack.id, { duration: musicPlayer.duration });
+          }
         }
       }
     });
@@ -2527,14 +2568,14 @@ function seekTrack(e) {
   const rect = e.currentTarget.getBoundingClientRect();
   const percent = ((e.clientX - rect.left) / rect.width);
   const newTime = Math.floor(musicPlayer.duration * Math.max(0, Math.min(1, percent)));
-  
+
   musicPlayer.currentTime = newTime;
-  
+
   // Update audio element if it exists
   if (musicPlayer.audioElement && musicPlayer.currentTrack.audioUrl) {
     musicPlayer.audioElement.currentTime = newTime;
   }
-  
+
   updateProgress();
 }
 
@@ -2544,10 +2585,29 @@ function seekTrack(e) {
 function playPrevious() {
   if (musicPlayer.queue.length === 0) return;
 
+  // Stop current playback
+  if (musicPlayer.audioElement) {
+    musicPlayer.audioElement.pause();
+  }
+
+  // Calculate previous track index
   if (musicPlayer.currentIndex > 0) {
     musicPlayer.currentIndex--;
   } else {
-    musicPlayer.currentIndex = musicPlayer.queue.length - 1;
+    // Wrap to end if repeat all, otherwise stop
+    if (musicPlayer.repeatMode === 'all') {
+      musicPlayer.currentIndex = musicPlayer.queue.length - 1;
+    } else {
+      // Restart current track
+      if (musicPlayer.audioElement && musicPlayer.currentTrack?.audioUrl) {
+        musicPlayer.audioElement.currentTime = 0;
+        musicPlayer.audioElement.play().catch(console.error);
+      } else {
+        musicPlayer.currentTime = 0;
+        updateProgress();
+      }
+      return;
+    }
   }
 
   const trackId = musicPlayer.queue[musicPlayer.currentIndex];
@@ -2560,14 +2620,44 @@ function playPrevious() {
 function playNext() {
   if (musicPlayer.queue.length === 0) return;
 
+  // Handle repeat one mode
   if (musicPlayer.repeatMode === 'one') {
-    musicPlayer.currentTime = 0;
-    updateProgress();
+    if (musicPlayer.audioElement && musicPlayer.currentTrack?.audioUrl) {
+      // Reset audio element to beginning
+      musicPlayer.audioElement.currentTime = 0;
+      musicPlayer.audioElement.play().catch(console.error);
+    } else {
+      // Simulated playback
+      musicPlayer.currentTime = 0;
+      updateProgress();
+    }
     return;
   }
 
+  // Calculate next track index
   if (musicPlayer.isShuffled) {
-    musicPlayer.currentIndex = Math.floor(Math.random() * musicPlayer.queue.length);
+    // Avoid playing the same track if only one track
+    if (musicPlayer.queue.length > 1) {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * musicPlayer.queue.length);
+      } while (newIndex === musicPlayer.currentIndex && musicPlayer.queue.length > 1);
+      musicPlayer.currentIndex = newIndex;
+    } else {
+      // Only one track, check repeat mode
+      if (musicPlayer.repeatMode === 'all') {
+        // Will restart the same track
+      } else {
+        // Stop playing
+        if (musicPlayer.audioElement) {
+          musicPlayer.audioElement.pause();
+        }
+        musicPlayer.isPlaying = false;
+        updatePlayPauseButton();
+        stopProgressTimer();
+        return;
+      }
+    }
   } else {
     if (musicPlayer.currentIndex < musicPlayer.queue.length - 1) {
       musicPlayer.currentIndex++;
@@ -2576,6 +2666,9 @@ function playNext() {
         musicPlayer.currentIndex = 0;
       } else {
         // Stop playing
+        if (musicPlayer.audioElement) {
+          musicPlayer.audioElement.pause();
+        }
         musicPlayer.isPlaying = false;
         updatePlayPauseButton();
         stopProgressTimer();
