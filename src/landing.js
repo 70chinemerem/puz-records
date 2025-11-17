@@ -20,30 +20,54 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Initialize video background with correct path
+ * Initialize video background with correct path and optimize loading
  * This ensures the video path is correctly resolved by Vite in production builds
- * By importing the video in JavaScript, Vite will process it and provide the correct
- * hashed path that works in both development and production
+ * and optimizes video loading for faster playback
  */
 function initVideoBackground() {
   const videoSource = document.querySelector('video source');
   const video = document.querySelector('video');
 
   if (videoSource && landingVideo && video) {
+    // Set preload to auto for faster loading (already in HTML, but ensure it's set)
+    video.preload = 'auto';
+    
     // Always use the imported video path - Vite will handle the correct path resolution
     // This ensures it works in both development and production builds
     videoSource.src = landingVideo;
 
-    // Reload the video element to apply the new source
+    // Optimize video loading - start loading immediately
     video.load();
 
-    // Ensure autoplay works (some browsers require user interaction first)
-    // The muted and playsinline attributes in HTML help with autoplay policies
-    video.play().catch(err => {
-      // Autoplay might be blocked by browser policy - this is normal
-      // The video will still be ready to play when user interacts
-      console.warn('Video autoplay may be blocked by browser policy:', err.message);
-    });
+    // Try to play as soon as enough data is loaded (canplay event)
+    // This reduces the delay before video starts playing
+    const tryPlay = () => {
+      if (video.readyState >= 3) { // HAVE_FUTURE_DATA or higher
+        video.play().catch(err => {
+          // Autoplay might be blocked by browser policy - this is normal
+          // The video will still be ready to play when user interacts
+          console.warn('Video autoplay may be blocked by browser policy:', err.message);
+        });
+      }
+    };
+
+    // Try to play when enough data is loaded
+    video.addEventListener('canplay', tryPlay, { once: true });
+    video.addEventListener('loadeddata', tryPlay, { once: true });
+
+    // Fallback: try to play immediately if video is already loaded
+    if (video.readyState >= 3) {
+      tryPlay();
+    } else {
+      // If not ready, try to play as soon as possible
+      video.play().catch(err => {
+        // Will retry on canplay event
+        console.warn('Video not ready yet, will retry:', err.message);
+      });
+    }
+
+    // Ensure video loops seamlessly
+    video.loop = true;
   }
 }
 
