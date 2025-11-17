@@ -22,27 +22,28 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Initialize video background with correct path
  * This ensures the video path is correctly resolved by Vite in production builds
- * Vite will process the import and provide the correct hashed path in production
+ * By importing the video in JavaScript, Vite will process it and provide the correct
+ * hashed path that works in both development and production
  */
 function initVideoBackground() {
   const videoSource = document.querySelector('video source');
   const video = document.querySelector('video');
-  
-  if (videoSource && landingVideo) {
-    // Only update if the source is not already set correctly (for production builds)
-    // In development, the HTML has src/videos/landing.mp4
-    // In production, Vite should have already updated it, but we ensure it's correct
-    if (!videoSource.src || videoSource.src.includes('src/videos')) {
-      videoSource.src = landingVideo;
-      // Reload the video element to apply the new source
-      if (video) {
-        video.load();
-        // Ensure autoplay works (some browsers require this)
-        video.play().catch(err => {
-          console.warn('Video autoplay prevented:', err);
-        });
-      }
-    }
+
+  if (videoSource && landingVideo && video) {
+    // Always use the imported video path - Vite will handle the correct path resolution
+    // This ensures it works in both development and production builds
+    videoSource.src = landingVideo;
+
+    // Reload the video element to apply the new source
+    video.load();
+
+    // Ensure autoplay works (some browsers require user interaction first)
+    // The muted and playsinline attributes in HTML help with autoplay policies
+    video.play().catch(err => {
+      // Autoplay might be blocked by browser policy - this is normal
+      // The video will still be ready to play when user interacts
+      console.warn('Video autoplay may be blocked by browser policy:', err.message);
+    });
   }
 }
 
@@ -52,11 +53,11 @@ function initVideoBackground() {
 function initAuthNavigation() {
   const isAuth = isAuthenticated();
   const user = getCurrentUser();
-  
+
   // Get navigation elements
   const authButtonsContainer = document.querySelector('.auth-buttons-container');
   const userMenuContainer = document.querySelector('.user-menu-container');
-  
+
   if (isAuth && user) {
     // Show user menu, hide auth buttons
     if (authButtonsContainer) authButtonsContainer.classList.add('hidden');
@@ -64,17 +65,17 @@ function initAuthNavigation() {
       userMenuContainer.classList.remove('hidden');
       userMenuContainer.classList.add('flex');
     }
-    
+
     // Update user info
     const userNameElements = document.querySelectorAll('.user-name-display');
     const userAvatarElements = document.querySelectorAll('.user-avatar');
-    
+
     userNameElements.forEach(el => {
       if (user.fullName) {
         el.textContent = user.fullName.split(' ')[0]; // First name only
       }
     });
-    
+
     userAvatarElements.forEach(el => {
       if (user.fullName) {
         const initials = user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -89,7 +90,7 @@ function initAuthNavigation() {
       userMenuContainer.classList.remove('flex');
     }
   }
-  
+
   // Handle logout
   const logoutButtons = document.querySelectorAll('.logout-btn');
   logoutButtons.forEach(btn => {
@@ -108,34 +109,34 @@ function initAuthNavigation() {
 function initSignupForm() {
   const signupForm = document.getElementById('landing-signup-form');
   const successMessage = document.getElementById('signup-success');
-  
+
   if (signupForm) {
     signupForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       // Get form data
       const formData = new FormData(signupForm);
       const firstName = document.getElementById('first-name').value;
       const lastName = document.getElementById('last-name').value;
       const email = document.getElementById('signup-email').value;
-      
+
       // Simulate form submission (replace with actual API call)
       // Form submitted - in production, send to API
-      
+
       // Show success message
       if (successMessage) {
         successMessage.classList.remove('hidden');
         signupForm.reset();
-        
+
         // Scroll to success message
         successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
+
         // Optional: Hide form after success
         setTimeout(() => {
           signupForm.style.opacity = '0.5';
         }, 500);
       }
-      
+
       // In production, send data to your backend API
       // Example:
       // fetch('/api/signup', {
@@ -159,24 +160,24 @@ function initSignupForm() {
  */
 function initSmoothScroll() {
   const links = document.querySelectorAll('a[href^="#"]');
-  
+
   links.forEach(link => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
-      
+
       if (href === '#' || href === '') {
         return;
       }
-      
+
       const target = document.querySelector(href);
-      
+
       if (target) {
         e.preventDefault();
-        
+
         // Calculate offset for fixed navigation
         const navHeight = document.querySelector('nav')?.offsetHeight || 0;
         const targetPosition = target.offsetTop - navHeight;
-        
+
         window.scrollTo({
           top: targetPosition,
           behavior: 'smooth'
@@ -191,7 +192,7 @@ function initSmoothScroll() {
  */
 function initNavbarScroll() {
   const navbar = document.getElementById('navbar');
-  
+
   if (navbar) {
     window.addEventListener('scroll', () => {
       if (window.scrollY > 50) {
@@ -214,7 +215,7 @@ function initScrollAnimations() {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
   };
-  
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -223,7 +224,7 @@ function initScrollAnimations() {
       }
     });
   }, observerOptions);
-  
+
   // Observe all sections and feature cards
   const animatedElements = document.querySelectorAll('section > div, .glass-effect');
   animatedElements.forEach((el, index) => {
@@ -238,12 +239,12 @@ function initScrollAnimations() {
  */
 function initParallax() {
   const hero = document.getElementById('home');
-  
+
   if (hero) {
     window.addEventListener('scroll', () => {
       const scrolled = window.pageYOffset;
       const rate = scrolled * 0.3;
-      
+
       if (scrolled < hero.offsetHeight) {
         hero.style.transform = `translateY(${rate}px)`;
       }
