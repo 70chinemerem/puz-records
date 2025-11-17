@@ -89,7 +89,7 @@ function initSignupForm() {
       const email = document.getElementById('signup-email').value;
       
       // Simulate form submission (replace with actual API call)
-      console.log('Signup submitted:', { firstName, lastName, email });
+      // Form submitted - in production, send to API
       
       // Show success message
       if (successMessage) {

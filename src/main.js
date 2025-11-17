@@ -172,7 +172,7 @@ function initContactForm() {
       const message = formData.get('message');
 
       // Simulate form submission (replace with actual API call)
-      console.log('Form submitted:', { name, email, message });
+      // Form submitted - in production, send to API
 
       // Show success message
       if (formMessage) {
@@ -510,7 +510,7 @@ function initNewsletter() {
       const email = document.getElementById('newsletter-email').value;
 
       // Simulate subscription (replace with actual API call)
-      console.log('Newsletter subscription:', email);
+      // Newsletter subscription - in production, send to API
 
       if (newsletterMessage) {
         newsletterMessage.textContent = 'Thank you for subscribing!';
