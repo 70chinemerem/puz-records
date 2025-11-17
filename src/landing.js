@@ -6,14 +6,45 @@
 // Import authentication functions
 import { isAuthenticated, getCurrentUser, logout } from './auth.js';
 
+// Import video file - Vite will process this and provide the correct path
+import landingVideo from './videos/landing.mp4';
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
+  initVideoBackground();
   initAuthNavigation();
   initSignupForm();
   initSmoothScroll();
   initNavbarScroll();
   initScrollAnimations();
 });
+
+/**
+ * Initialize video background with correct path
+ * This ensures the video path is correctly resolved by Vite in production builds
+ * Vite will process the import and provide the correct hashed path in production
+ */
+function initVideoBackground() {
+  const videoSource = document.querySelector('video source');
+  const video = document.querySelector('video');
+  
+  if (videoSource && landingVideo) {
+    // Only update if the source is not already set correctly (for production builds)
+    // In development, the HTML has src/videos/landing.mp4
+    // In production, Vite should have already updated it, but we ensure it's correct
+    if (!videoSource.src || videoSource.src.includes('src/videos')) {
+      videoSource.src = landingVideo;
+      // Reload the video element to apply the new source
+      if (video) {
+        video.load();
+        // Ensure autoplay works (some browsers require this)
+        video.play().catch(err => {
+          console.warn('Video autoplay prevented:', err);
+        });
+      }
+    }
+  }
+}
 
 /**
  * Initialize authentication-based navigation updates
