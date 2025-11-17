@@ -18,17 +18,19 @@ import { logout, getCurrentUser, isAuthenticated } from './auth.js';
 // 2. Add 'coverImage' property with the path to your image file
 // 3. Supported formats: JPG, PNG, WebP
 // 4. If no coverImage is provided, a gradient background will be used
+// Sample tracks - Update with your own audio files and cover images
+// Only tracks 1 and 2 have actual audio files. Others use simulated playback.
 const SAMPLE_TRACKS = [
-  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'src/audio/first.mp3', coverImage: 'src/images/with-you.jpg' }, // Add cover image path here
-  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'src/audio/am sorry.mp3', coverImage: 'src/images/sky b.jpeg' }, // Add cover image path here
-  { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600', audioUrl: 'audio/after-hours.mp3' },
-  { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600', audioUrl: 'audio/electric-pulse.mp3' },
-  { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600', audioUrl: 'audio/ocean-breeze.mp3' },
-  { id: 6, title: 'Mountain Peak', artist: 'Nature Sounds', album: 'Natural World', duration: 230, genre: 'Ambient', color: 'from-green-500 to-emerald-600', audioUrl: 'audio/mountain-peak.mp3' },
-  { id: 7, title: 'Sunset Boulevard', artist: 'City Vibes', album: 'Urban Life', duration: 205, genre: 'Pop', color: 'from-orange-500 to-red-600', audioUrl: 'audio/sunset-boulevard.mp3' },
-  { id: 8, title: 'Midnight Jazz', artist: 'Smooth Operators', album: 'Jazz Collection', duration: 240, genre: 'Jazz', color: 'from-purple-500 to-indigo-600', audioUrl: 'audio/midnight-jazz.mp3' },
-  { id: 9, title: 'Digital Dreams', artist: 'Tech Beats', album: 'Future Sounds', duration: 220, genre: 'Electronic', color: 'from-indigo-500 to-purple-600', audioUrl: 'audio/digital-dreams.mp3' },
-  { id: 10, title: 'Acoustic Morning', artist: 'Folk Tales', album: 'Morning Coffee', duration: 215, genre: 'Folk', color: 'from-yellow-500 to-orange-600', audioUrl: 'audio/acoustic-morning.mp3' }
+  { id: 1, title: 'with you', artist: 'Davido Ft Omaly', album: 'Flive', duration: 225, genre: 'Electronic', color: 'from-blue-500 to-purple-600', audioUrl: 'src/audio/first.mp3' },
+  { id: 2, title: 'Im Sorry', artist: 'Sky B', album: 'Puz Records', duration: 198, genre: 'Indie', color: 'from-purple-500 to-pink-600', audioUrl: 'src/audio/am sorry.mp3', coverImage: 'src/images/sky b.jpeg' },
+  { id: 3, title: 'After Hours', artist: 'Midnight Drive', album: 'Late Night Sessions', duration: 245, genre: 'Jazz', color: 'from-pink-500 to-orange-600' },
+  { id: 4, title: 'Electric Pulse', artist: 'Synth Masters', album: 'Digital Age', duration: 210, genre: 'Electronic', color: 'from-blue-500 to-cyan-600' },
+  { id: 5, title: 'Ocean Breeze', artist: 'Coastal Sounds', album: 'Beach Vibes', duration: 195, genre: 'Ambient', color: 'from-cyan-500 to-blue-600' },
+  { id: 6, title: 'Mountain Peak', artist: 'Nature Sounds', album: 'Natural World', duration: 230, genre: 'Ambient', color: 'from-green-500 to-emerald-600' },
+  { id: 7, title: 'Sunset Boulevard', artist: 'City Vibes', album: 'Urban Life', duration: 205, genre: 'Pop', color: 'from-orange-500 to-red-600' },
+  { id: 8, title: 'Midnight Jazz', artist: 'Smooth Operators', album: 'Jazz Collection', duration: 240, genre: 'Jazz', color: 'from-purple-500 to-indigo-600' },
+  { id: 9, title: 'Digital Dreams', artist: 'Tech Beats', album: 'Future Sounds', duration: 220, genre: 'Electronic', color: 'from-indigo-500 to-purple-600' },
+  { id: 10, title: 'Acoustic Morning', artist: 'Folk Tales', album: 'Morning Coffee', duration: 215, genre: 'Folk', color: 'from-yellow-500 to-orange-600' }
 ];
 
 // Data Management System
@@ -341,30 +343,18 @@ document.addEventListener('DOMContentLoaded', () => {
   initMusicPlayer();
   initAccountType();
 
-  // Debug: Test audio element on load
-  setTimeout(() => {
-    const audioEl = document.getElementById('audio-player');
-    if (audioEl) {
-      console.log('✅ Audio element exists in DOM');
-      console.log('Audio element details:', {
-        id: audioEl.id,
-        src: audioEl.src,
-        readyState: audioEl.readyState,
-        paused: audioEl.paused,
-        volume: audioEl.volume
-      });
-    } else {
-      console.error('❌ Audio element NOT found in DOM!');
-      console.error('Make sure <audio id="audio-player"> exists in dashboard.html');
-    }
-
-    // Check if musicPlayer has audio element
-    if (musicPlayer.audioElement) {
-      console.log('✅ musicPlayer.audioElement is set');
-    } else {
-      console.error('❌ musicPlayer.audioElement is null!');
-    }
-  }, 500);
+  // Audio element initialization check (development only)
+  if (import.meta.env.DEV) {
+    setTimeout(() => {
+      const audioEl = document.getElementById('audio-player');
+      if (!audioEl) {
+        console.warn('Audio element not found. Ensure <audio id="audio-player"> exists in dashboard.html');
+      }
+      if (!musicPlayer.audioElement) {
+        console.warn('musicPlayer.audioElement is not initialized');
+      }
+    }, 500);
+  }
   initNotificationSystem(); // Initialize notification system
   loadUserProfile();
   loadAccountType(); // Load account type on page load
@@ -600,7 +590,7 @@ function renderFavoritesSearchResults(results, query) {
       <td class="p-4">${index + 1}</td>
       <td class="p-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br ${track.color} rounded"></div>
+          ${createTrackImage(track, 'w-10 h-10', 'rounded')}
           <span class="font-semibold">${track.title}</span>
         </div>
       </td>
@@ -753,7 +743,7 @@ function renderRecentSearchResults(results, query) {
       card.className = 'glass-effect rounded-xl p-4 hover-lift group cursor-pointer';
       card.innerHTML = `
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 bg-gradient-to-br ${track.color} rounded-lg"></div>
+          ${createTrackImage(track, 'w-16 h-16', 'rounded-lg')}
           <div class="flex-1 min-w-0">
             <h3 class="font-semibold truncate">${track.title}</h3>
             <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -889,7 +879,7 @@ function loadRecentlyPlayedPreview() {
       const element = document.createElement('div');
       element.className = 'flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer';
       element.innerHTML = `
-        <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg"></div>
+        ${createTrackImage(track, 'w-12 h-12', 'rounded-lg')}
         <div class="flex-1 min-w-0">
           <p class="font-semibold truncate">${track.title}</p>
           <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -1241,7 +1231,7 @@ function initFavorites() {
       <td class="p-4">${index + 1}</td>
       <td class="p-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br ${track.color} rounded"></div>
+          ${createTrackImage(track, 'w-10 h-10', 'rounded')}
           <span class="font-semibold">${track.title}</span>
         </div>
       </td>
@@ -1294,7 +1284,7 @@ function initRecent() {
       card.className = 'glass-effect rounded-xl p-4 hover-lift group cursor-pointer';
       card.innerHTML = `
         <div class="flex items-center gap-4">
-          <div class="w-16 h-16 bg-gradient-to-br ${track.color} rounded-lg"></div>
+          ${createTrackImage(track, 'w-16 h-16', 'rounded-lg')}
           <div class="flex-1 min-w-0">
             <h3 class="font-semibold truncate">${track.title}</h3>
             <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -1328,7 +1318,7 @@ function initDownloads() {
     <div class="space-y-3">
       ${downloadedTracks.map(track => `
         <div class="flex items-center gap-4 p-3 hover:bg-white/5 rounded-lg group transition-all" data-track-id="${track.id}">
-          <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg flex-shrink-0"></div>
+          ${createTrackImage(track, 'w-12 h-12', 'rounded-lg')}
           <div class="flex-1 min-w-0">
             <h3 class="font-semibold truncate">${track.title}</h3>
             <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -1866,7 +1856,7 @@ function showPlaylistModal(playlist) {
       : playlistTracks.map((track, index) => `
             <div class="flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 cursor-pointer group" data-track-id="${track.id}">
               <span class="text-gray-500 w-6 text-sm">${index + 1}</span>
-              <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg flex-shrink-0"></div>
+              ${createTrackImage(track, 'w-12 h-12', 'rounded-lg')}
               <div class="flex-1 min-w-0">
                 <p class="font-semibold truncate">${track.title}</p>
                 <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -1970,7 +1960,7 @@ function showAddTracksToPlaylistModal(playlistId) {
       ? '<p class="text-gray-400 text-center py-8">All tracks are already in this playlist</p>'
       : availableTracks.map(track => `
             <div class="flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 cursor-pointer group" data-track-id="${track.id}">
-              <div class="w-12 h-12 bg-gradient-to-br ${track.color} rounded-lg flex-shrink-0"></div>
+              ${createTrackImage(track, 'w-12 h-12', 'rounded-lg')}
               <div class="flex-1 min-w-0">
                 <p class="font-semibold truncate">${track.title}</p>
                 <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -2056,7 +2046,6 @@ function initMusicPlayer() {
   const audioElement = document.getElementById('audio-player');
   if (audioElement) {
     musicPlayer.audioElement = audioElement;
-    console.log('✅ Audio element found and initialized');
 
     // Set initial volume
     audioElement.volume = musicPlayer.volume;
@@ -2096,7 +2085,6 @@ function initMusicPlayer() {
     });
 
     audioElement.addEventListener('error', (e) => {
-      console.error('Audio error:', e);
       showNotification('Error loading audio file. Please check if the file exists.', 'error');
       musicPlayer.isPlaying = false;
       updatePlayPauseButton();
@@ -2118,7 +2106,6 @@ function initMusicPlayer() {
       // Audio is ready to play
       if (musicPlayer.isPlaying) {
         audioElement.play().catch(err => {
-          console.error('Play error:', err);
           showNotification('Unable to play audio. User interaction may be required.', 'error');
         });
       }
@@ -2233,26 +2220,19 @@ function playTrack(trackId) {
     musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
   }
 
-  // Load and play audio if audio URL exists
-  if (musicPlayer.audioElement && track.audioUrl) {
-    console.log('🎵 Attempting to play:', track.title);
-    console.log('📁 Audio URL:', track.audioUrl);
-    console.log('🔊 Audio element:', musicPlayer.audioElement);
+      // Load and play audio if audio URL exists
+      if (musicPlayer.audioElement && track.audioUrl) {
+        try {
+          // Stop current playback if any
+          musicPlayer.audioElement.pause();
+          musicPlayer.audioElement.currentTime = 0;
 
-    try {
-      // Stop current playback if any
-      musicPlayer.audioElement.pause();
-      musicPlayer.audioElement.currentTime = 0;
+          // Set new source
+          musicPlayer.audioElement.src = track.audioUrl;
+          musicPlayer.audioElement.load();
 
-      // Set new source
-      console.log('📂 Setting audio source to:', track.audioUrl);
-      musicPlayer.audioElement.src = track.audioUrl;
-      musicPlayer.audioElement.load();
-      console.log('✅ Audio loaded, waiting for metadata...');
-
-      // Wait for metadata to load before playing
-      const metadataHandler = () => {
-        console.log('📊 Metadata loaded. Duration:', musicPlayer.audioElement.duration);
+          // Wait for metadata to load before playing
+          const metadataHandler = () => {
         if (musicPlayer.audioElement.duration) {
           musicPlayer.duration = Math.floor(musicPlayer.audioElement.duration);
           // Update track duration in library if it was estimated
@@ -2271,8 +2251,6 @@ function playTrack(trackId) {
 
       // Error handler for loading
       const errorHandler = (e) => {
-        console.error('❌ Audio loading error:', e);
-        console.error('Error details:', musicPlayer.audioElement.error);
         if (musicPlayer.audioElement.error) {
           const error = musicPlayer.audioElement.error;
           let errorMsg = 'Unknown error';
@@ -2298,27 +2276,18 @@ function playTrack(trackId) {
 
       musicPlayer.audioElement.addEventListener('loadedmetadata', metadataHandler, { once: true });
       musicPlayer.audioElement.addEventListener('error', errorHandler, { once: true });
-      musicPlayer.audioElement.addEventListener('canplay', () => {
-        console.log('✅ Audio can play now');
-      }, { once: true });
 
       // Play audio
       musicPlayer.isPlaying = true;
-      console.log('▶️ Attempting to play audio...');
       const playPromise = musicPlayer.audioElement.play();
 
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
             // Playback started successfully
-            console.log('✅ Audio playback started successfully!');
-            console.log('🎵 Now playing:', track.title);
             showNotification(`Now playing: ${track.title}`, 'success');
           })
           .catch(error => {
-            console.error('❌ Playback error:', error);
-            console.error('Error name:', error.name);
-            console.error('Error message:', error.message);
             // If autoplay is blocked, just show the player
             musicPlayer.isPlaying = false;
             if (error.name === 'NotAllowedError') {
@@ -2328,11 +2297,8 @@ function playTrack(trackId) {
             }
             updatePlayPauseButton();
           });
-      } else {
-        console.warn('⚠️ play() returned undefined');
       }
     } catch (error) {
-      console.error('Error loading audio:', error);
       showNotification(`Error loading audio file: ${error.message}`, 'error');
       musicPlayer.isPlaying = false;
       // Fallback to simulated playback
@@ -2341,13 +2307,6 @@ function playTrack(trackId) {
     }
   } else {
     // No audio URL or no audio element - use simulated playback
-    if (!musicPlayer.audioElement) {
-      console.error('❌ Audio element not found! Check if <audio id="audio-player"> exists in HTML.');
-    }
-    if (!track.audioUrl) {
-      console.warn('⚠️ No audioUrl for track:', track.title);
-    }
-    console.warn('⚠️ Using simulated playback for:', track.title);
     musicPlayer.duration = track.duration || 225;
     musicPlayer.isPlaying = true;
     startProgressTimer();
@@ -2476,7 +2435,6 @@ function togglePlayPause() {
       const playPromise = musicPlayer.audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch(error => {
-          console.error('Playback error:', error);
           showNotification('Unable to play audio', 'error');
         });
       }
@@ -2829,7 +2787,7 @@ function showQueue() {
         ${queueTracks.map((track, index) => `
           <div class="flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 cursor-pointer ${index === musicPlayer.currentIndex ? 'bg-blue-500/20 border border-blue-500/50' : ''}" 
                data-track-index="${index}">
-            <div class="w-10 h-10 bg-gradient-to-br ${track.color} rounded-lg flex-shrink-0"></div>
+            ${createTrackImage(track, 'w-10 h-10', 'rounded-lg')}
             <div class="flex-1 min-w-0">
               <p class="font-semibold truncate text-sm">${track.title}</p>
               <p class="text-xs text-gray-400 truncate">${track.artist}</p>
@@ -3222,11 +3180,7 @@ function deleteDownload(trackId) {
   modal.innerHTML = `
     <div class="glass-effect rounded-xl p-6 max-w-md w-full transform scale-95 opacity-0 transition-all duration-300">
       <div class="flex items-center gap-4 mb-6">
-        <div class="w-16 h-16 bg-gradient-to-br ${track.color} rounded-xl flex items-center justify-center flex-shrink-0">
-          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </div>
+        ${createTrackImage(track, 'w-16 h-16', 'rounded-xl')}
         <div class="flex-1 min-w-0">
           <h3 class="text-xl font-display font-bold mb-1 truncate">${track.title}</h3>
           <p class="text-sm text-gray-400 truncate">${track.artist}</p>
@@ -4290,11 +4244,7 @@ function loadProfileActivity() {
       const activityItem = document.createElement('div');
       activityItem.className = 'flex items-center gap-3 p-3 glass-effect rounded-lg hover:bg-white/5 transition-colors cursor-pointer';
       activityItem.innerHTML = `
-        <div class="w-10 h-10 bg-gradient-to-br ${track.color} rounded-lg flex items-center justify-center flex-shrink-0">
-          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </div>
+        ${createTrackImage(track, 'w-10 h-10', 'rounded-lg')}
         <div class="flex-1 min-w-0">
           <p class="font-semibold truncate text-sm">Played "${track.title}"</p>
           <p class="text-xs text-gray-400 truncate">${formatDate(item.playedAt)}</p>
