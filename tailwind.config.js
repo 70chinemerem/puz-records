@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./landing.html",
+    "./index.html", // Landing page (default entry point)
+    "./home.html", // Home page
     "./dashboard.html",
     "./login.html",
     "./register.html",

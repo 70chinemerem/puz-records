@@ -2078,7 +2078,9 @@ function initMusicPlayer() {
       // Track finished playing
       if (musicPlayer.repeatMode === 'one') {
         audioElement.currentTime = 0;
-        audioElement.play().catch(console.error);
+        audioElement.play().catch(() => {
+          // Error handled by error event listener
+        });
       } else {
         playNext();
       }
@@ -2220,19 +2222,19 @@ function playTrack(trackId) {
     musicPlayer.currentIndex = musicPlayer.queue.indexOf(trackId);
   }
 
-      // Load and play audio if audio URL exists
-      if (musicPlayer.audioElement && track.audioUrl) {
-        try {
-          // Stop current playback if any
-          musicPlayer.audioElement.pause();
-          musicPlayer.audioElement.currentTime = 0;
+  // Load and play audio if audio URL exists
+  if (musicPlayer.audioElement && track.audioUrl) {
+    try {
+      // Stop current playback if any
+      musicPlayer.audioElement.pause();
+      musicPlayer.audioElement.currentTime = 0;
 
-          // Set new source
-          musicPlayer.audioElement.src = track.audioUrl;
-          musicPlayer.audioElement.load();
+      // Set new source
+      musicPlayer.audioElement.src = track.audioUrl;
+      musicPlayer.audioElement.load();
 
-          // Wait for metadata to load before playing
-          const metadataHandler = () => {
+      // Wait for metadata to load before playing
+      const metadataHandler = () => {
         if (musicPlayer.audioElement.duration) {
           musicPlayer.duration = Math.floor(musicPlayer.audioElement.duration);
           // Update track duration in library if it was estimated
@@ -2559,7 +2561,9 @@ function playPrevious() {
       // Restart current track
       if (musicPlayer.audioElement && musicPlayer.currentTrack?.audioUrl) {
         musicPlayer.audioElement.currentTime = 0;
-        musicPlayer.audioElement.play().catch(console.error);
+        musicPlayer.audioElement.play().catch(() => {
+          // Error handled by error event listener
+        });
       } else {
         musicPlayer.currentTime = 0;
         updateProgress();
@@ -2583,7 +2587,9 @@ function playNext() {
     if (musicPlayer.audioElement && musicPlayer.currentTrack?.audioUrl) {
       // Reset audio element to beginning
       musicPlayer.audioElement.currentTime = 0;
-      musicPlayer.audioElement.play().catch(console.error);
+      musicPlayer.audioElement.play().catch(() => {
+        // Error handled by error event listener
+      });
     } else {
       // Simulated playback
       musicPlayer.currentTime = 0;
