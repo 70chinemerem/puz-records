@@ -31,7 +31,7 @@ function initVideoBackground() {
   if (videoSource && landingVideo && video) {
     // Set preload to auto for faster loading (already in HTML, but ensure it's set)
     video.preload = 'auto';
-    
+
     // Always use the imported video path - Vite will handle the correct path resolution
     // This ensures it works in both development and production builds
     videoSource.src = landingVideo;
