@@ -163,3 +163,4 @@ Using Tailwind's responsive classes:
 
 **Your project is now fully mobile-compatible and looks great on all devices!** 🎉
 
+
