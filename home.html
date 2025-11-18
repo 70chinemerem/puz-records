@@ -7,24 +7,32 @@
   <meta name="description"
     content="Puz Records - Discover the next generation of music. Home to innovative artists and groundbreaking releases.">
   <title>Puz Records | Discover the Next Generation of Music</title>
-  
+
   <!-- Security Headers (Note: X-Frame-Options must be set via HTTP headers, not meta tags) -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-XSS-Protection" content="1; mode=block">
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-  
+
   <link rel="stylesheet" href="src/style.css">
 </head>
 
 <body>
   <!-- Navigation -->
   <nav class="fixed top-0 left-0 right-0 z-50 glass-effect">
-    <div class="container mx-auto px-4 py-4">
+    <div class="container mx-auto px-4 py-3 md:py-4">
       <div class="flex items-center justify-between">
         <!-- Logo -->
-        <a href="index.html" class="text-2xl font-display font-bold text-gradient">
+        <a href="index.html" class="text-xl md:text-2xl font-display font-bold text-gradient">
           PUZ RECORDS
         </a>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-100 hover:text-white transition-colors"
+          aria-label="Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-8">

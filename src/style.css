@@ -228,3 +228,74 @@ select:focus {
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
+
+/* Mobile Optimizations */
+@layer utilities {
+
+  /* Touch-friendly minimum sizes */
+  @media (max-width: 768px) {
+
+    button,
+    a[role="button"],
+    input[type="button"],
+    input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Better text sizing on mobile */
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+
+    h2 {
+      font-size: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    h3 {
+      font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+    }
+
+    /* Prevent text from being too small */
+    body {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* Better spacing on mobile */
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* Improve form inputs on mobile */
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+      /* Prevents zoom on iOS */
+      min-height: 44px;
+    }
+  }
+
+  /* Tablet optimizations */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  /* Safe area for notched devices */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+    }
+
+    nav {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+  }
+}

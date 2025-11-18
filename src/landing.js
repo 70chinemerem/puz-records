@@ -401,3 +401,56 @@ function initParallax() {
 // Optional: Uncomment to enable parallax effect
 // initParallax();
 
+/**
+ * Initialize mobile menu functionality
+ */
+function initMobileMenu() {
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const menuClose = document.getElementById('mobile-menu-close');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileOverlay = document.getElementById('mobile-menu-overlay');
+
+  // Open menu
+  if (menuBtn && mobileMenu && mobileOverlay) {
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.remove('translate-x-full');
+      mobileOverlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+    });
+  }
+
+  // Close menu
+  const closeMenu = () => {
+    if (mobileMenu && mobileOverlay) {
+      mobileMenu.classList.add('translate-x-full');
+      mobileOverlay.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scroll
+    }
+  };
+
+  if (menuClose) {
+    menuClose.addEventListener('click', closeMenu);
+  }
+
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', closeMenu);
+  }
+
+  // Close menu when clicking on menu links
+  const menuLinks = mobileMenu?.querySelectorAll('a');
+  if (menuLinks) {
+    menuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        closeMenu();
+      });
+    });
+  }
+
+  // Close menu on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu && !mobileMenu.classList.contains('translate-x-full')) {
+      closeMenu();
+    }
+  });
+}
+
