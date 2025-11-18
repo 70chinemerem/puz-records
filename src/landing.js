@@ -22,53 +22,175 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Initialize video background with correct path and optimize loading
  * This ensures the video path is correctly resolved by Vite in production builds
- * and optimizes video loading for faster playback
+ * and optimizes video loading for faster playback with comprehensive error handling
  */
 function initVideoBackground() {
   const videoSource = document.querySelector('video source');
   const video = document.querySelector('video');
 
-  if (videoSource && landingVideo && video) {
-    // Set preload to auto for faster loading (already in HTML, but ensure it's set)
-    video.preload = 'auto';
+  if (!video) {
+    console.error('Video element not found');
+    return;
+  }
 
-    // Always use the imported video path - Vite will handle the correct path resolution
-    // This ensures it works in both development and production builds
-    videoSource.src = landingVideo;
+  if (!videoSource) {
+    console.error('Video source element not found');
+    return;
+  }
 
-    // Optimize video loading - start loading immediately
-    video.load();
+  if (!landingVideo) {
+    console.error('Landing video import not available');
+    return;
+  }
 
-    // Try to play as soon as enough data is loaded (canplay event)
-    // This reduces the delay before video starts playing
-    const tryPlay = () => {
-      if (video.readyState >= 3) { // HAVE_FUTURE_DATA or higher
-        video.play().catch(err => {
-          // Autoplay might be blocked by browser policy - this is normal
-          // The video will still be ready to play when user interacts
-          console.warn('Video autoplay may be blocked by browser policy:', err.message);
-        });
+  // Set preload to auto for faster loading
+  video.preload = 'auto';
+
+  // Always use the imported video path - Vite will handle the correct path resolution
+  // This ensures it works in both development and production builds
+  videoSource.src = landingVideo;
+  console.log('Video source set to:', landingVideo);
+
+  // Add comprehensive error handling
+  video.addEventListener('error', (e) => {
+    const error = video.error;
+    if (error) {
+      let errorMsg = 'Unknown error';
+      switch (error.code) {
+        case error.MEDIA_ERR_ABORTED:
+          errorMsg = 'Video loading was aborted';
+          break;
+        case error.MEDIA_ERR_NETWORK:
+          errorMsg = 'Network error - video file not found or CORS issue';
+          break;
+        case error.MEDIA_ERR_DECODE:
+          errorMsg = 'Video decode error - file may be corrupted';
+          break;
+        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          errorMsg = 'Video format not supported';
+          break;
       }
-    };
+      console.error('Video error:', errorMsg, error);
+    }
+  });
 
-    // Try to play when enough data is loaded
-    video.addEventListener('canplay', tryPlay, { once: true });
-    video.addEventListener('loadeddata', tryPlay, { once: true });
+  // Log loading progress
+  video.addEventListener('loadstart', () => {
+    console.log('Video loading started');
+  });
 
-    // Fallback: try to play immediately if video is already loaded
-    if (video.readyState >= 3) {
-      tryPlay();
-    } else {
-      // If not ready, try to play as soon as possible
-      video.play().catch(err => {
-        // Will retry on canplay event
-        console.warn('Video not ready yet, will retry:', err.message);
-      });
+  video.addEventListener('loadedmetadata', () => {
+    console.log('Video metadata loaded, duration:', video.duration);
+  });
+
+  video.addEventListener('loadeddata', () => {
+    console.log('Video data loaded, readyState:', video.readyState);
+  });
+
+  video.addEventListener('canplay', () => {
+    console.log('Video can play, readyState:', video.readyState);
+  });
+
+  video.addEventListener('canplaythrough', () => {
+    console.log('Video can play through');
+  });
+
+  // Optimize video loading - start loading immediately
+  video.load();
+
+  // Try to play as soon as enough data is loaded
+  const tryPlay = () => {
+    // Check if page is visible (not in background tab)
+    if (document.hidden) {
+      console.log('Page is hidden, will retry when visible');
+      return;
     }
 
-    // Ensure video loops seamlessly
-    video.loop = true;
+    if (video.readyState >= 3) { // HAVE_FUTURE_DATA or higher
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Video playback started successfully');
+          })
+          .catch(err => {
+            // Handle specific browser power-saving pause
+            if (err.name === 'NotAllowedError' ||
+              err.message.includes('interrupted') ||
+              err.message.includes('paused to save power')) {
+              console.log('Video paused by browser power-saving, will retry when page is visible');
+              // Will retry when page becomes visible
+            } else {
+              // Other autoplay blocking
+              console.warn('Video autoplay blocked:', err.name, err.message);
+            }
+          });
+      }
+    } else {
+      console.log('Video not ready yet, readyState:', video.readyState);
+    }
+  };
+
+  // Retry playing when page becomes visible (handles power-saving pause)
+  const handleVisibilityChange = () => {
+    if (!document.hidden && video.paused && video.readyState >= 3) {
+      console.log('Page became visible, retrying video playback');
+      video.play().catch(err => {
+        console.log('Retry failed:', err.message);
+      });
+    }
+  };
+
+  // Listen for page visibility changes
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Also retry when window gains focus
+  window.addEventListener('focus', () => {
+    if (video.paused && video.readyState >= 3) {
+      console.log('Window focused, retrying video playback');
+      video.play().catch(err => {
+        console.log('Focus retry failed:', err.message);
+      });
+    }
+  });
+
+  // Try to play when enough data is loaded
+  video.addEventListener('canplay', tryPlay, { once: true });
+  video.addEventListener('loadeddata', tryPlay, { once: true });
+  video.addEventListener('canplaythrough', tryPlay, { once: true });
+
+  // Handle when video is paused by browser (power-saving)
+  video.addEventListener('pause', () => {
+    // Only log if paused by browser, not by user
+    if (video.readyState >= 3 && !video.ended) {
+      console.log('Video paused (possibly by browser power-saving)');
+    }
+  });
+
+  // Retry when video becomes playable after being paused
+  video.addEventListener('playing', () => {
+    console.log('Video is now playing');
+  });
+
+  // Fallback: try to play immediately if video is already loaded
+  if (video.readyState >= 3 && !document.hidden) {
+    tryPlay();
+  } else {
+    // If not ready, try to play as soon as possible
+    setTimeout(() => {
+      if (video.readyState >= 2 && !document.hidden) { // HAVE_CURRENT_DATA or higher
+        tryPlay();
+      }
+    }, 100);
   }
+
+  // Ensure video loops seamlessly
+  video.loop = true;
+
+  // Ensure muted and playsinline are set (required for autoplay)
+  video.muted = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('autoplay', '');
 }
 
 /**
