@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
   initNavbarScroll();
   initScrollAnimations();
+  initMobileMenu();
 });
 
 /**
@@ -452,5 +453,15 @@ function initMobileMenu() {
       closeMenu();
     }
   });
+
+  // Handle logout button in mobile menu
+  const logoutBtn = mobileMenu?.querySelector('.logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      logout();
+      closeMenu();
+      window.location.href = 'index.html';
+    });
+  }
 }
 

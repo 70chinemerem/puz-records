@@ -22,6 +22,43 @@
 </head>
 
 <body class="overflow-x-hidden overflow-y-auto">
+  <!-- Mobile Menu Overlay -->
+  <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/70 z-40 hidden md:hidden transition-opacity"></div>
+  
+  <!-- Mobile Menu -->
+  <div id="mobile-menu"
+    class="fixed inset-y-0 right-0 w-64 bg-gray-900/90 backdrop-blur-xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out md:hidden flex flex-col">
+    <div class="p-6 flex items-center justify-between border-b border-gray-800">
+      <h3 class="text-xl font-display font-bold text-gradient">MENU</h3>
+      <button id="mobile-menu-close" class="text-gray-400 hover:text-white transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <nav class="flex-1 px-6 py-8 space-y-4 overflow-y-auto">
+      <a href="#home" class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Home</a>
+      <a href="#features"
+        class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Features</a>
+      <a href="#testimonials"
+        class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Testimonials</a>
+      <a href="#signup" class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Sign
+        Up</a>
+      <a href="login.html"
+        class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Sign In</a>
+      <a href="register.html"
+        class="block text-lg font-medium text-gray-200 hover:text-blue-400 transition-colors">Get Started</a>
+      <a href="dashboard.html"
+        class="block text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors">Dashboard</a>
+    </nav>
+    <div class="p-6 border-t border-gray-800">
+      <button
+        class="logout-btn w-full text-left px-4 py-2.5 rounded-lg hover:bg-red-500/20 transition-colors text-sm text-red-400 font-medium">
+        Log Out
+      </button>
+    </div>
+  </div>
+
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 glass-effect transition-all duration-300" id="navbar">
     <div class="container mx-auto px-4 py-3 md:py-4">
@@ -96,7 +133,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+    <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-16 md:pt-20 pb-8 md:pb-0">
         <!-- Video Background -->
         <!-- 
             To use your own video:
